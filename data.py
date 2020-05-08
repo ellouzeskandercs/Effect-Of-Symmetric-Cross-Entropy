@@ -105,8 +105,33 @@ def show_batch(image_batch, label_batch, CLASS_NAMES):
 
 
 ''' add noise to data (of type symmetric or assymmetric) '''
-def add_noise(noise_rate, type):
-	pass
+def add_noise(dataset,labels,n_classes,noise_rate,type):
+	noisy_labels=np.copy(labels)
+	if type=='sym':
+		for i in range(n_classes):
+			ind_for_class = np.where(np.equal(labels,i))[0]
+			np.random.shuffle(ind_for_class)
+			ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
+			other_classes=list(range(n_classes))
+			other_classes.remove(i)
+			randoms = np.random.randint(0,n_classes-1,len(ind_to_flip))
+			new_labels = [other_classes[i] for i in randoms]
+			noisy_labels[ind_to_flip,:] = np.array(newl_abels).reshape(len(ind_to_flip),1)
+	else:
+		if dataset == 'cifar10' :
+			#TRUCK to AUTOMOBILE, BIRD to AIRPLANE, DEER to HORSE, CAT and DOG both ways
+			flip ={2:0,9:1,4:7,3:5,5:3}
+			for i in flip.keys():
+				ind_for_class = np.where(np.equal(labels,i))[0]
+				np.random.shuffle(ind_for_class)
+				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
+				noisy_labels[ind_to_flip,:]=flip[i]
+
+		if dataset== 'imageNet': 
+			# what are the classes??
+			pass
+
+	return noisy_labels
 
 
 load_tiny_imagenet()
