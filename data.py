@@ -44,6 +44,26 @@ def one_hot(labels, n_classes):
 		one_hot[i][label] = 1
 	return one_hot
 
+''' Only needed to run once, to store validation data in class subdirectories '''
+def restructure_validation_data():
+	dir = 'datasets/tiny-imagenet-200/val'
+	img_dir = dir + '/images'
+	img_dict = {}
+
+	with open('datasets/tiny-imagenet-200/val/val_annotations.txt', 'r') as f:
+		img_cnt = 0
+		for line in f.readlines():
+			split_line = line.split('\t')
+			filename = 'datasets/tiny-imagenet-200/val/images/' + split_line[0]
+			img_dict[split_line[0]] = split_line[1]
+
+	for filename, label in img_dict.items():
+		new_dir = (os.path.join(img_dir, label))
+		if not os.path.exists(new_dir):
+			os.makedirs(new_dir)
+		if os.path.exists(os.path.join(img_dir, filename)):
+			os.rename(os.path.join(img_dir, filename), os.path.join(new_dir, filename))
+
 
 ''' Read Tiny ImageNet dataset '''
 def load_tiny(mode):
@@ -62,53 +82,23 @@ def load_tiny(mode):
 			values = text description from words.txt
 	"""
 	label_dict, class_description = build_label_dicts()
-	dir = 'datasets/tiny-imagenet-200/' + mode
-	image_generator = ImageDataGenerator(rescale=1./255)
 
 	if mode == 'train':
-		data_gen = image_generator.flow_from_directory(batch_size=32,
-	   															directory=dir,
-																shuffle=True,
-																target_size=(64, 64),
-																class_mode='categorical')
-	elif mode == 'val': # todo - this does not work atm
-		data_gen = image_generator.flow_from_directory(batch_size=32,
-	   															directory=dir,
-																shuffle=False,
-																target_size=(64, 64),
-																class_mode='binary')
-		# read the labels of the validation data from txt file
-		val_labels = np.zeros(10000, dtype=np.int32)
-		with open('datasets/tiny-imagenet-200/val/val_annotations.txt', 'r') as f:
-			img_cnt = 0
-			for line in f.readlines():
-				split_line = line.split('\t')
-				filename = 'datasets/tiny-imagenet-200/val/images/' + split_line[0]
-				label = str(label_dict[split_line[1]])
-				val_labels[img_cnt] = np.int32(int(label))
-				img_cnt += 1
+		dir = 'datasets/tiny-imagenet-200/' + mode
+	elif mode == 'val':
+		 dir = 'datasets/tiny-imagenet-200/' + mode + '/images'
 
-		print(type(data_gen)) # <class 'keras_preprocessing.image.directory_iterator.DirectoryIterator'>
-		print(type(data_gen.labels)) # <class 'numpy.ndarray'>
-		print(type(data_gen.labels[0])) # <class 'numpy.int32'>
-		data_gen.classes = val_labels
-		print(type(data_gen.labels)) # <class 'numpy.ndarray'>
-		print(type(data_gen.labels[0])) # <class 'numpy.int32'>
-		print((data_gen.labels))
-		print((data_gen.labels[0]))
-		print(len(data_gen.labels)) # 10 000
-		images, labels = next(data_gen)
-		print(data_gen.classes)
-		print(labels[:5])
-		for x in labels[:5]:
-			print(x)
-			print(class_description[x])
-		plotImages(images[:5])
+	image_generator = ImageDataGenerator(rescale=1./255)
+	data_gen = image_generator.flow_from_directory(batch_size=32,
+														directory=dir,
+														shuffle=True,
+														target_size=(64, 64),
+														class_mode='categorical')
 
 	return data_gen, label_dict, class_description
 
 
-""" Function rerieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
+""" Function retrieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
 def build_label_dicts():
 	"""Build look-up dictionaries for class label, and class description
 	Class labels are 0 to 199 in the same order as
@@ -145,16 +135,6 @@ def plotImages(images_arr):
 		ax.imshow(img)
 		ax.axis('off')
 	plt.tight_layout()
-	plt.show()
-
-
-def show_batch(image_batch, label_batch, CLASS_NAMES):
-	plt.figure(figsize=(10,10))
-	for n in range(25):
-		ax = plt.subplot(5,5,n+1)
-		plt.imshow(image_batch[n])
-		plt.title(CLASS_NAMES[label_batch[n]==1][0].title())
-		plt.axis('off')
 	plt.show()
 
 
@@ -195,8 +175,8 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 
 	return noisy_labels
 
-
-# load_tiny('train')
-(x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
-noisy_labels = add_noise(x_train,y_train,10,0.2,'sym')
-print(len(noisy_labels))
+restructure_validation_data()
+load_tiny('val')
+# (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
+# noisy_labels = add_noise(x_train,y_train,10,0.2,'sym')
+# print(len(noisy_labels))
