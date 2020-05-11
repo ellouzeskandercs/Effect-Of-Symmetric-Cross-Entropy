@@ -56,14 +56,13 @@ class Metrics(tf.keras.callbacks.Callback):
         self.X_test = X_test
         self.y_test = y_test
         self.n_class = y_train.shape[1]
-
-        self.train_loss = []
-        self.test_loss = []
-        self.train_acc = []
-        self.test_acc = []
+        
         self.train_acc_class = []
-
+        self.confidence = []
     def on_epoch_end(self, epoch, logs={}):
+        if epoch in [10,30,50,70,90,110]:
+            predicted_prob = self.model.predict(self.X_train)
+            self.confidence.append(np.mean(predicted_prob, axis=0))
         y = self.model.predict(self.X_test)
         y_pred = K.constant(y)
         y_true = K.constant(self.y_test)
