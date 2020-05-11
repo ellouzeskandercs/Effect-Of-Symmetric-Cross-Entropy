@@ -26,6 +26,7 @@ for noise_rate in noise_rates_sym: #change here for assym
 	#y_train=add_noise(dataset,labels,n_classes,noise_rate,type='sym')
     x_train = x_train[:100,:,:,:]
     y_train = y_train[:100,:]
+    labels = labels[:100,:]
 	# x_test = x_test[:1000,:,:,:]
 	# y_test = y_test[:1000,:]
 
@@ -33,7 +34,7 @@ for noise_rate in noise_rates_sym: #change here for assym
     model = get_model()
     model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),s=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy'])
     loss_history = LossHistory()
-    Metr = Metrics(model, x_train, y_train, y_train, x_test, y_test)
+    Metr = Metrics(model, x_train, y_train, labels, x_test, y_test)
     lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
     H = model.fit(x_train,y_train, epochs=10, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
    
