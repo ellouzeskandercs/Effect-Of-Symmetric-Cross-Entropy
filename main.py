@@ -60,4 +60,17 @@ for noise_rate in noise_rates_sym: #change here for assym
     plt.legend()
     noise_rate = 0
     plt.savefig('./AccuracyperclassCE'+'NoiseRate.png')
+    
+    fig, ax = plt.subplots()
+    index = np.arange(10)
+    bar_width = 0.35
+    opacity = 0.8    
+    rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
+    rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')   
+    rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
+    rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')   
+    plt.xlabel('Class')
+    plt.ylabel('Number of samples')
+    plt.title('Confidence distribution')
+    plt.legend()
 	# test the model
