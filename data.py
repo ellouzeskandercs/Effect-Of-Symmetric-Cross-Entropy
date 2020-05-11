@@ -186,7 +186,7 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 			from_class=np.random.uniform(0,200,40)
 			to_class=np.random.uniform(0,200,40)
 			for i in range(40):
-				flip={from_class[i],to_class[i]}
+				flip={from_class[i]:to_class[i]}
 			for i in flip.keys():
 				ind_for_class = np.where(np.equal(labels,i))[0]
 				np.random.shuffle(ind_for_class)
