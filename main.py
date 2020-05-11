@@ -74,4 +74,6 @@ for noise_rate in noise_rates_sym: #change here for assym
     plt.ylabel('Number of samples')
     plt.title('Confidence distribution')
     plt.legend()
+    plt.savefig('./PredictionDistrCE'+'NoiseRate.png')
+
 	# test the model
