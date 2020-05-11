@@ -36,7 +36,7 @@ def load_cifar10():
 
 	return ((x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test))
 
-''' Not really needed '''
+
 def one_hot(labels, n_classes):
 	one_hot = np.zeros((labels.size, n_classes))
 	for i in range(labels.size):
@@ -148,14 +148,14 @@ def plotImages(images_arr):
 	plt.show()
 
 
-# def show_batch(image_batch, label_batch, CLASS_NAMES):
-# 	plt.figure(figsize=(10,10))
-# 	for n in range(25):
-# 		ax = plt.subplot(5,5,n+1)
-# 		plt.imshow(image_batch[n])
-# 		plt.title(CLASS_NAMES[label_batch[n]==1][0].title())
-# 		plt.axis('off')
-# 	plt.show()
+def show_batch(image_batch, label_batch, CLASS_NAMES):
+	plt.figure(figsize=(10,10))
+	for n in range(25):
+		ax = plt.subplot(5,5,n+1)
+		plt.imshow(image_batch[n])
+		plt.title(CLASS_NAMES[label_batch[n]==1][0].title())
+		plt.axis('off')
+	plt.show()
 
 
 ''' add noise to data (of type symmetric or assymmetric) '''
@@ -181,12 +181,20 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
-		if dataset== 'imageNet':
-			# what are the classes??
-			pass
+		if dataset=='imageNet':
+			#40 switched classes randomly
+			from_class=np.random.uniform(0,200,40)
+			to_class=np.random.uniform(0,200,40)
+			for i in range(40):
+				flip={from_class[i],to_class[i]}
+			for i in flip.keys():
+				ind_for_class = np.where(np.equal(labels,i))[0]
+				np.random.shuffle(ind_for_class)
+				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
+				noisy_labels[ind_to_flip,:]=flip[i]
 
 	return noisy_labels
 
 
-load_tiny('val')
+# load_tiny_imagenet()
 (x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test) = load_cifar10()
