@@ -59,15 +59,16 @@ class Metrics(tf.keras.callbacks.Callback):
         
         self.train_acc_class = []
         self.confidence = []
+
     def on_epoch_end(self, epoch, logs={}):
-        if epoch in [10,30,50,70,90,110]:
+        if epoch in [5, 10, 30, 50, 70, 90, 110]:
             predicted_prob = self.model.predict(self.X_train)
             self.confidence.append(np.mean(predicted_prob, axis=0))
         y = self.model.predict(self.X_test)
         y_pred = K.constant(y)
         y_true = K.constant(self.y_test)
-        self.train_acc_class.append([K.eval(accperclass(y_true,y_pred,c=i)) for i in range(self.n_call)])
-        print('ALL acc:', self.test_acc,'AccperClass : ',self.train_acc_class[-1])
+        self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
+        print('AccperClass : ', self.train_acc_class[-1])
 
 def step_decay(epoch):
     initial_lrate = 0.01
