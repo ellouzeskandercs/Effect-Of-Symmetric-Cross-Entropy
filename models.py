@@ -69,7 +69,7 @@ class Metrics(tf.keras.callbacks.Callback):
             pred = np.argmax(predicted_prob,axis=1)
             predicted = 10*[0]
             correct = 10*[0]
-        for i in range (self.n_class) : 
+        for i in range (self.n_class) :
             predicted[i] = np.size(np.where(pred==i))
             correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i))
             self.Pred.append(predicted)
@@ -102,30 +102,44 @@ def symmetric_cross_entropy(y_actual,y_pred,A=-6,alpha=0.1,beta=1):
     return custom_loss
 
 
-def get_imagenet_model():
-	''' Model based on: http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf '''
-	''' 8 layers in total, first 5 layers are conv with 128 filters of size 3x3 each
-	 	Padding size of 1 and stride of 1 is used for conv layers
-		2nd, 4th, 5th layers are followed by max-pooling layer over 2x2 kernels with a stride of 1
-		Finally - followed by 3 fully connected layerswith neurons of: 400, 4000, 200
-		Finally a softmax function
-		[[conv-relu]⇥2pool]⇥2[conv-relu-pool][fc]⇥3-softmax
+def get_model_imagenet():
+	''' Model based on: http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
+		- 8 layers in total, first 5 layers are conv with 128 filters of size 3x3 each
+	 	- Padding size of 1 and stride of 1 is used for conv layers
+		- 2nd, 4th, 5th layers are followed by max-pooling layer over 2x2 kernels with a stride of 1
+		- Finally - followed by 3 fully connected layerswith neurons of: 400, 400, 200 and then a softmax function.
+		- L2 regularization and Dropout
+		- Xavier initialization (glorot_normal) of weights, biases initialized to zero
+		[[conv-relu]x2-pool]x2-[conv-relu-pool]-[fc]x3-softmax
 	'''
-
+	lamda = 0.0005 # maybe need to be set higher unless we reach 2M training samples by data ugmentation
+	dropout_rate = 0.5
 	model = tf.keras.Sequential([
-		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', name='layer1_conv'),
-		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer2_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', kernel_initializer='glorot_normal', bias_initializer='zeros', name='layer1_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', kernel_initializer='glorot_normal', bias_initializer='zeros', name='layer2_conv'),
 		tf.keras.layers.MaxPooling2D(2, strides=1, name='layer2_pool'),
-		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer3_conv'),
-		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer4_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', kernel_initializer='glorot_normal', bias_initializer='zeros', name='layer3_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', kernel_initializer='glorot_normal', bias_initializer='zeros', name='layer4_conv'),
 		tf.keras.layers.MaxPooling2D(2, strides=1, name='layer4_pool'),
-		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer5_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', kernel_initializer='glorot_normal', bias_initializer='zeros', name='layer5_conv'),
 		tf.keras.layers.MaxPooling2D(2, strides=1, name='layer5_pool'),
 		tf.keras.layers.Flatten(name='flatten'),
-		tf.keras.layers.Dense(400),
-		tf.keras.layers.Dense(400),
-		tf.keras.layers.Dense(200),
-		tf.keras.layers.Activation(tf.nn.softmax),
+		tf.keras.layers.Dense(400, kernel_initializer='glorot_normal', bias_initializer='zeros', kernel_regularizer=tf.keras.regularizers.l2(lamda), bias_regularizer=tf.keras.regularizers.l2(lamda), name='fc1'),
+		tf.keras.layers.Dropout(rate=dropout_rate),
+		tf.keras.layers.Dense(400, kernel_initializer='glorot_normal', bias_initializer='zeros', kernel_regularizer=tf.keras.regularizers.l2(lamda), bias_regularizer=tf.keras.regularizers.l2(lamda), name='fc2'),
+		tf.keras.layers.Dropout(rate=dropout_rate),
+		tf.keras.layers.Dense(200, kernel_initializer='glorot_normal', bias_initializer='zeros', kernel_regularizer=tf.keras.regularizers.l2(lamda), bias_regularizer=tf.keras.regularizers.l2(lamda), name='fc3'),
+		tf.keras.layers.Dropout(rate=dropout_rate),
+		tf.keras.layers.Softmax(),
 	])
-
 	return(model)
+
+
+def step_decay_imagenet(epoch):
+    initial_lrate = 0.01
+    drop = 0.1
+    epochs_drop = 10 # NOTE - only difference from cifar10 step decay
+    lrate = initial_lrate * math.pow(drop,math.floor((1+epoch)/epochs_drop))
+    return lrate
+
+get_model_imagenet()
