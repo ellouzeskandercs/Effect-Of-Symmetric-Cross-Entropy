@@ -31,13 +31,44 @@ def load_cifar10():
 
 	return ((x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test))
 
-''' Not really needed '''
+
 def one_hot(labels, n_classes):
 	one_hot = np.zeros((labels.size, n_classes))
 	for i in range(labels.size):
 		label = labels[i][0]
 		one_hot[i][label] = 1
 	return one_hot
+
+
+''' read Tiny ImageNet dataset '''
+""" Function rerieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
+def build_label_dicts():
+	"""Build look-up dictionaries for class label, and class description
+	Class labels are 0 to 199 in the same order as
+	tiny-imagenet-200/wnids.txt. Class text descriptions are from
+	tiny-imagenet-200/words.txt
+	Returns:
+		tuple of dicts
+		label_dict:
+			keys = synset (e.g. "n01944390")
+			values = class integer {0 .. 199}
+		class_desc:
+			keys = class integer {0 .. 199}
+			values = text description from words.txt
+	"""
+	label_dict, class_description = {}, {}
+	with open('datasets/tiny-imagenet-200/wnids.txt', 'r') as f:
+		for i, line in enumerate(f.readlines()):
+			synset = line[:-1]  # remove \n
+			label_dict[synset] = i
+	with open('datasets/tiny-imagenet-200/words.txt', 'r') as f:
+		for i, line in enumerate(f.readlines()):
+			synset, desc = line.split('\t')
+			desc = desc[:-1]  # remove \n
+			if synset in label_dict:
+				class_description[label_dict[synset]] = desc
+
+	return label_dict, class_description
 
 
 def load_tiny(mode):
@@ -102,36 +133,6 @@ def load_tiny(mode):
 	return data_gen, label_dict, class_description
 
 
-''' read Tiny ImageNet dataset '''
-""" Function rerieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
-def build_label_dicts():
-	"""Build look-up dictionaries for class label, and class description
-	Class labels are 0 to 199 in the same order as
-	tiny-imagenet-200/wnids.txt. Class text descriptions are from
-	tiny-imagenet-200/words.txt
-	Returns:
-		tuple of dicts
-		label_dict:
-			keys = synset (e.g. "n01944390")
-			values = class integer {0 .. 199}
-		class_desc:
-			keys = class integer {0 .. 199}
-			values = text description from words.txt
-	"""
-	label_dict, class_description = {}, {}
-	with open('datasets/tiny-imagenet-200/wnids.txt', 'r') as f:
-		for i, line in enumerate(f.readlines()):
-			synset = line[:-1]  # remove \n
-			label_dict[synset] = i
-	with open('datasets/tiny-imagenet-200/words.txt', 'r') as f:
-		for i, line in enumerate(f.readlines()):
-			synset, desc = line.split('\t')
-			desc = desc[:-1]  # remove \n
-			if synset in label_dict:
-				class_description[label_dict[synset]] = desc
-
-	return label_dict, class_description
-
 # This function will plot images in the form of a grid with 1 row and 5 columns where images are placed in each column.
 def plotImages(images_arr):
 	fig, axes = plt.subplots(1, 5, figsize=(20,20))
@@ -143,14 +144,14 @@ def plotImages(images_arr):
 	plt.show()
 
 
-# def show_batch(image_batch, label_batch, CLASS_NAMES):
-# 	plt.figure(figsize=(10,10))
-# 	for n in range(25):
-# 		ax = plt.subplot(5,5,n+1)
-# 		plt.imshow(image_batch[n])
-# 		plt.title(CLASS_NAMES[label_batch[n]==1][0].title())
-# 		plt.axis('off')
-# 	plt.show()
+def show_batch(image_batch, label_batch, CLASS_NAMES):
+	plt.figure(figsize=(10,10))
+	for n in range(25):
+		ax = plt.subplot(5,5,n+1)
+		plt.imshow(image_batch[n])
+		plt.title(CLASS_NAMES[label_batch[n]==1][0].title())
+		plt.axis('off')
+	plt.show()
 
 
 ''' add noise to data (of type symmetric or assymmetric) '''
@@ -176,12 +177,20 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
-		if dataset== 'imageNet':
-			# what are the classes??
-			pass
+		if dataset=='imageNet':
+			#40 switched classes randomly
+			from_class=np.random.uniform(0,200,40)
+			to_class=np.random.uniform(0,200,40)
+			for i in range(40):
+				flip={from_class[i],to_class[i]}
+			for i in flip.keys():
+				ind_for_class = np.where(np.equal(labels,i))[0]
+				np.random.shuffle(ind_for_class)
+				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
+				noisy_labels[ind_to_flip,:]=flip[i]
 
 	return noisy_labels
 
 
-load_tiny('val')
+load_tiny_imagenet()
 (x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test) = load_cifar10()
