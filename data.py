@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 import matplotlib.image as img
 import os
 import pathlib
+import random
+import glob
+import re
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
@@ -40,6 +45,7 @@ def one_hot(labels, n_classes):
 	return one_hot
 
 
+''' Read Tiny ImageNet dataset '''
 def load_tiny(mode):
 	"""Generate data set based on mode.
 	Args:
@@ -102,7 +108,6 @@ def load_tiny(mode):
 	return data_gen, label_dict, class_description
 
 
-''' read Tiny ImageNet dataset '''
 """ Function rerieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
 def build_label_dicts():
 	"""Build look-up dictionaries for class label, and class description
