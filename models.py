@@ -40,12 +40,12 @@ def get_model():
     tf.keras.layers.Activation(tf.nn.softmax)
     ])
     return(model)
-    
+
 def accperclass(y_true,y_pred,c):
     z = K.equal(K.reshape(K.cast(K.argmax(y_pred),'float32'),K.shape(y_true)),y_true)
     e = K.equal(y_true,c)
     return(K.sum(K.cast(K.all(K.stack([z, e], axis=0), axis=0),'int32'))/K.maximum(1,K.sum(K.cast(e,'int32'))))
-    
+
 class Metrics(tf.keras.callbacks.Callback):
     def __init__(self, model, X_train, y_train, y_train_clean, X_test, y_test):
         super(Metrics, self).__init__()
@@ -56,7 +56,7 @@ class Metrics(tf.keras.callbacks.Callback):
         self.X_test = X_test
         self.y_test = y_test
         self.n_class = y_train.shape[1]
-        
+
         self.train_acc_class = []
         self.confidence = []
 
@@ -81,7 +81,7 @@ class LossHistory(tf.keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
         self.losses = []
         self.lr = []
-    
+
     def on_epoch_end(self, batch, logs={}):
         self.losses.append(logs.get('loss'))
         self.lr.append(step_decay(len(self.losses)))
@@ -91,3 +91,31 @@ def symmetric_cross_entropy(y_actual,y_pred,A=-6,alpha=0.1,beta=1):
     custom_loss =  - alpha * K.mean(K.batch_dot(q,K.maximum(K.log(y_pred+1e-15),A))) - beta * K.mean(K.batch_dot(K.maximum(K.log(q+1e-15),A),y_pred))
     return custom_loss
 
+
+def get_imagenet_model():
+	''' Model based on: http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf '''
+	''' 8 layers in total, first 5 layers are conv with 128 filters of size 3x3 each
+	 	Padding size of 1 and stride of 1 is used for conv layers
+		2nd, 4th, 5th layers are followed by max-pooling layer over 2x2 kernels with a stride of 1
+		Finally - followed by 3 fully connected layerswith neurons of: 400, 4000, 200
+		Finally a softmax function
+		[[conv-relu]⇥2pool]⇥2[conv-relu-pool][fc]⇥3-softmax
+	'''
+
+	model = tf.keras.Sequential([
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', name='layer1_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer2_conv'),
+		tf.keras.layers.MaxPooling2D(2, strides=1, name='layer2_pool'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer3_conv'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer4_conv'),
+		tf.keras.layers.MaxPooling2D(2, strides=1, name='layer4_pool'),
+		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', input_shape=(64,64,3), activation='relu', name='layer5_conv'),
+		tf.keras.layers.MaxPooling2D(2, strides=1, name='layer5_pool'),
+		tf.keras.layers.Flatten(name='flatten'),
+		tf.keras.layers.Dense(400),
+		tf.keras.layers.Dense(400),
+		tf.keras.layers.Dense(200),
+		tf.keras.layers.Activation(tf.nn.softmax),
+	])
+
+	return(model)
