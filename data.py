@@ -41,57 +41,107 @@ def one_hot(labels, n_classes):
 
 
 ''' read Tiny ImageNet dataset '''
-def load_tiny_imagenet():
-	x_train, Y_train, CLASS_NAMES = load_train_data_keras()
-	x_valid = load_valid_data_keras()
-	# TODO: load test data
+""" Function rerieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
+def build_label_dicts():
+	"""Build look-up dictionaries for class label, and class description
+	Class labels are 0 to 199 in the same order as
+	tiny-imagenet-200/wnids.txt. Class text descriptions are from
+	tiny-imagenet-200/words.txt
+	Returns:
+		tuple of dicts
+		label_dict:
+			keys = synset (e.g. "n01944390")
+			values = class integer {0 .. 199}
+		class_desc:
+			keys = class integer {0 .. 199}
+			values = text description from words.txt
+	"""
+	label_dict, class_description = {}, {}
+	with open('datasets/tiny-imagenet-200/wnids.txt', 'r') as f:
+		for i, line in enumerate(f.readlines()):
+			synset = line[:-1]  # remove \n
+			label_dict[synset] = i
+	with open('datasets/tiny-imagenet-200/words.txt', 'r') as f:
+		for i, line in enumerate(f.readlines()):
+			synset, desc = line.split('\t')
+			desc = desc[:-1]  # remove \n
+			if synset in label_dict:
+				class_description[label_dict[synset]] = desc
 
-	# return ((x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test))
-
-
-''' reading images using keras.preprocessing as described in tutorial: https://www.tensorflow.org/tutorials/load_data/images '''
-def load_train_data_keras():
-	data_dir = pathlib.Path('C:/Users/sara/github/kth/DD2424-Project/datasets/tiny-imagenet-200/train')
-
-	image_count = len(list(data_dir.glob('**/*.JPEG')))
-	CLASS_NAMES = np.array([item.name for item in data_dir.glob('*')])
-
-	image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255) # convert from uint8 to float32 in range [0,1]
-	BATCH_SIZE = 100000 # all the available training samples = 100 000
-	IMG_HEIGHT = 64
-	IMG_WIDTH = 64
-	STEPS_PER_EPOCH = np.ceil(image_count/BATCH_SIZE)
-
-	train_data_gen = image_generator.flow_from_directory(directory=str(data_dir),
-													batch_size=BATCH_SIZE,
-													shuffle=True,
-													target_size=(IMG_HEIGHT, IMG_WIDTH),
-													classes = list(CLASS_NAMES)
-													)
-
-	image_batch, label_batch = next(train_data_gen)
-	# show_batch(image_batch, label_batch, CLASS_NAMES)
-	return image_batch, label_batch, CLASS_NAMES
+	return label_dict, class_description
 
 
-def load_valid_data_keras():
-	data_dir = pathlib.Path('C:/Users/sara/github/kth/DD2424-Project/datasets/tiny-imagenet-200/val')
+def load_tiny(mode):
+	"""Generate data set based on mode.
+	Args:
+		mode: 'train' or 'val'
+	Returns:
+		data_gen:
+			<class 'keras_preprocessing.image.directory_iterator.DirectoryIterator'>
+			containing training or validation data rescaled to 0-1
+		label_dict:
+			keys = synset (e.g. "n01944390")
+			values = class integer {0 .. 199}
+		class_description:
+			keys = class integer {0 .. 199}
+			values = text description from words.txt
+	"""
+	label_dict, class_description = build_label_dicts()
+	dir = 'datasets/tiny-imagenet-200/' + mode
+	image_generator = ImageDataGenerator(rescale=1./255)
 
-	image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1./255) # convert from uint8 to float32 in range [0,1]
-	BATCH_SIZE = 10000
-	IMG_HEIGHT = 64
-	IMG_WIDTH = 64
+	if mode == 'train':
+		data_gen = image_generator.flow_from_directory(batch_size=32,
+	   															directory=dir,
+																shuffle=True,
+																target_size=(64, 64),
+																class_mode='categorical')
+	elif mode == 'val': # todo - this does not work atm
+		data_gen = image_generator.flow_from_directory(batch_size=32,
+	   															directory=dir,
+																shuffle=False,
+																target_size=(64, 64),
+																class_mode='binary')
+		# read the labels of the validation data from txt file
+		val_labels = np.zeros(10000, dtype=np.int32)
+		with open('datasets/tiny-imagenet-200/val/val_annotations.txt', 'r') as f:
+			img_cnt = 0
+			for line in f.readlines():
+				split_line = line.split('\t')
+				filename = 'datasets/tiny-imagenet-200/val/images/' + split_line[0]
+				label = str(label_dict[split_line[1]])
+				val_labels[img_cnt] = np.int32(int(label))
+				img_cnt += 1
 
-	data_gen = image_generator.flow_from_directory(directory=str(data_dir),
-													batch_size=BATCH_SIZE,
-													shuffle=False,
-													target_size=(IMG_HEIGHT, IMG_WIDTH),
-													class_mode=None,
-													)
+		print(type(data_gen)) # <class 'keras_preprocessing.image.directory_iterator.DirectoryIterator'>
+		print(type(data_gen.labels)) # <class 'numpy.ndarray'>
+		print(type(data_gen.labels[0])) # <class 'numpy.int32'>
+		data_gen.classes = val_labels
+		print(type(data_gen.labels)) # <class 'numpy.ndarray'>
+		print(type(data_gen.labels[0])) # <class 'numpy.int32'>
+		print((data_gen.labels))
+		print((data_gen.labels[0]))
+		print(len(data_gen.labels)) # 10 000
+		images, labels = next(data_gen)
+		print(data_gen.classes)
+		print(labels[:5])
+		for x in labels[:5]:
+			print(x)
+			print(class_description[x])
+		plotImages(images[:5])
 
-	image_batch = next(data_gen)
-	# TODO - read the labels of the validation data from the val_annotations.txt file
-	return image_batch
+	return data_gen, label_dict, class_description
+
+
+# This function will plot images in the form of a grid with 1 row and 5 columns where images are placed in each column.
+def plotImages(images_arr):
+	fig, axes = plt.subplots(1, 5, figsize=(20,20))
+	axes = axes.flatten()
+	for img, ax in zip( images_arr, axes):
+		ax.imshow(img)
+		ax.axis('off')
+	plt.tight_layout()
+	plt.show()
 
 
 def show_batch(image_batch, label_batch, CLASS_NAMES):
@@ -127,7 +177,7 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
-		if dataset== 'imageNet': 
+		if dataset== 'imageNet':
 			# what are the classes??
 			pass
 
