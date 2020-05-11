@@ -196,5 +196,5 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 	return noisy_labels
 
 
-# load_tiny_imagenet()
+# load_tiny('val')
 (x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test) = load_cifar10()
