@@ -5,7 +5,7 @@ import tensorflow as tf
 # here we can write the main code of the project
 
 # read the data
-(x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test) = load_cifar10()
+(x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
 
 noise_rates_sym=[0.2,0.3,0.4]
 noise_rates_asym=[0.2,0.4,0.6,0.8]
