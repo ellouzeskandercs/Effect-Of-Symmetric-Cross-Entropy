@@ -1,17 +1,10 @@
 import tensorflow as tf
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-import matplotlib.image as img
-import os
-import pathlib
-import random
-import glob
-import re
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import numpy as np
 import matplotlib.pyplot as plt
+import os
+import random
 
-AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 ''' read CIFAR10 dataset '''
 def load_cifar10():
@@ -44,6 +37,7 @@ def one_hot(labels, n_classes):
 		one_hot[i][label] = 1
 	return one_hot
 
+
 ''' Only needed to run once, to store validation data in class subdirectories '''
 def restructure_validation_data():
 	dir = 'datasets/tiny-imagenet-200/val'
@@ -65,7 +59,7 @@ def restructure_validation_data():
 			os.rename(os.path.join(img_dir, filename), os.path.join(new_dir, filename))
 
 
-''' Read Tiny ImageNet dataset '''
+''' read Tiny ImageNet dataset '''
 def load_tiny(mode):
 	"""Generate data set based on mode.
 	Args:
@@ -81,12 +75,16 @@ def load_tiny(mode):
 			keys = class integer {0 .. 199}
 			values = text description from words.txt
 	"""
+	if mode not in ['train', 'val']:
+		print("ERROR: mode must be 'train' or 'val'")
+		return
+
 	label_dict, class_description = build_label_dicts()
 
 	if mode == 'train':
 		dir = 'datasets/tiny-imagenet-200/' + mode
 	elif mode == 'val':
-		 dir = 'datasets/tiny-imagenet-200/' + mode + '/images'
+		dir = 'datasets/tiny-imagenet-200/' + mode + '/images'
 
 	image_generator = ImageDataGenerator(rescale=1./255)
 	data_gen = image_generator.flow_from_directory(batch_size=32,
@@ -96,6 +94,18 @@ def load_tiny(mode):
 														class_mode='categorical')
 
 	return data_gen, label_dict, class_description
+
+
+def load_tiny_test():
+	''' Returns the Tiny ImageNet test images (withour labels) as a Keras DirectoryIterator '''
+	dir = 'datasets/tiny-imagenet-200/test'
+	image_generator = ImageDataGenerator(rescale=1./255)
+	data_gen = image_generator.flow_from_directory(batch_size=32,
+														directory=dir,
+														shuffle=True,
+														target_size=(64, 64),
+														class_mode=None)
+	return data_gen
 
 
 """ Function retrieved from: https://github.com/pat-coady/tiny_imagenet, Copyright (c) 2017 pat-coady """
@@ -140,6 +150,10 @@ def plotImages(images_arr):
 
 ''' add noise to data (of type symmetric or assymmetric) '''
 def add_noise(dataset,labels,n_classes,noise_rate,type):
+	if dataset not in ['cifar10', 'imageNet']:
+		print("ERROR: dataset must be 'cifar10' or 'imageNet'")
+		return
+
 	noisy_labels=np.copy(labels)
 	if type=='sym':
 		for i in range(n_classes):
@@ -176,8 +190,10 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 
 	return noisy_labels
 
-restructure_validation_data()
-load_tiny('val')
+# restructure_validation_data() # only need to be run once
+# load_tiny('train')
+# load_tiny_test()
+
 # (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
-# noisy_labels = add_noise(x_train,y_train,10,0.2,'sym')
+# noisy_labels = add_noise('cifar10',y_train,10,0.2,'sym')
 # print(len(noisy_labels))
