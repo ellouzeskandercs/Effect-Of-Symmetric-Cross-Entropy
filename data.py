@@ -25,16 +25,16 @@ def load_cifar10():
 	y_valid, y_train = np.split(y_train, [valid_size], axis = 0)
 
 	# one hot encoding of labels - will we need this?
-	Y_train = one_hot(y_train, n_classes)
-	Y_valid = one_hot(y_valid, n_classes)
-	Y_test = one_hot(y_test, n_classes)
+	# Y_train = one_hot(y_train, n_classes)
+	# Y_valid = one_hot(y_valid, n_classes)
+	# Y_test = one_hot(y_test, n_classes)
 
 	# scale image data to 0-1
 	x_train = x_train / 255
 	x_valid = x_valid / 255
 	x_test = x_test / 255
 
-	return ((x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test))
+	return ((x_train, y_train), (x_valid, y_valid), (x_test, y_test))
 
 
 def one_hot(labels, n_classes):
@@ -170,7 +170,7 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 			other_classes.remove(i)
 			randoms = np.random.randint(0,n_classes-1,len(ind_to_flip))
 			new_labels = [other_classes[i] for i in randoms]
-			noisy_labels[ind_to_flip,:] = np.array(newl_abels).reshape(len(ind_to_flip),1)
+			noisy_labels[ind_to_flip,:] = np.array(new_labels).reshape(len(ind_to_flip),1)
 	else:
 		if dataset == 'cifar10' :
 			#TRUCK to AUTOMOBILE, BIRD to AIRPLANE, DEER to HORSE, CAT and DOG both ways
@@ -196,5 +196,7 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 	return noisy_labels
 
 
-# load_tiny('val')
-(x_train, y_train, Y_train), (x_valid, y_valid, Y_valid), (x_test, y_test, Y_test) = load_cifar10()
+# load_tiny('train')
+(x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
+noisy_labels = add_noise(x_train,y_train,10,0.2,'sym')
+print(len(noisy_labels))
