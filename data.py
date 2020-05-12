@@ -86,7 +86,16 @@ def load_tiny(mode):
 	elif mode == 'val':
 		dir = 'datasets/tiny-imagenet-200/' + mode + '/images'
 
-	image_generator = ImageDataGenerator(rescale=1./255)
+	augment_data = False
+	if augment_data and mode == 'train': # we always only augment training data
+		image_generator = ImageDataGenerator(rescale=1./255,
+												width_shift_range=0.2,
+												height_shift_range=0.2,
+												horizontal_flip=True,
+											)
+	else:
+		image_generator = ImageDataGenerator(rescale=1./255)
+
 	data_gen = image_generator.flow_from_directory(batch_size=32,
 														directory=dir,
 														shuffle=True,
