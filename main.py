@@ -44,7 +44,7 @@ for noise_rate in noise_rates_sym: #change here for assym
                         validation_data=(x_test, y_test),
                         callbacks==[loss_history, lrate, Metr]
                         )'''
-    H = model.fit(x_train,y_train, epochs=10, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
+    H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 120, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
    
     confidence = np.asarray(Metr.confidence)
@@ -60,16 +60,17 @@ for noise_rate in noise_rates_sym: #change here for assym
     fig2 = plt.figure()
     plt.plot(confidence)
     plt.xticks(np.arange(confidence.shape[0]))
-    fig2.show
+	fig2.show
     plt.show()
-    
+    plt.savefig('./ConfidenceCE'+str(NoiseRate)+'.png')
+
     Accuracies = np.array(Metr.train_acc_class).transpose()
     for i in range(10):
          plt.plot(range(60),Accuracies[i,:],'--',label='class'+str(i))
     plt.plot(range(60),H.history['val_accuracy'][:],'-r',label='overall')
     plt.legend()
     noise_rate = 0
-    plt.savefig('./AccuracyperclassCE'+'NoiseRate.png')
+    plt.savefig('./AccuracyperclassCE'+str(NoiseRate)+'.png')
     
     fig, ax = plt.subplots()
     index = np.arange(10)
@@ -83,6 +84,6 @@ for noise_rate in noise_rates_sym: #change here for assym
     plt.ylabel('Number of samples')
     plt.title('Confidence distribution')
     plt.legend()
-    plt.savefig('./PredictionDistrCE'+'NoiseRate.png')
+    plt.savefig('./PredictionDistrCE'+str(NoiseRate)+'.png')
 
 	# test the model
