@@ -80,6 +80,39 @@ class Metrics(tf.keras.callbacks.Callback):
         self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
         print('AccperClass : ', self.train_acc_class[-1])
 
+class Metrics_imagenet(tf.keras.callbacks.Callback):
+    def __init__(self, model, train_gen, test_gen, clean_labels_train, n_classes):
+        super(Metrics_imagenet, self).__init__()
+        self.model = model
+        self.train_gen = train_gen # self.X_train = X_train
+        self.test_gen = test_gen # self.y_train = y_train
+        self.y_train_clean = clean_labels_train
+        # self.X_test = X_test
+        # self.y_test = y_test
+        self.n_class = n_classes
+        self.train_acc_class = []
+        self.confidence = []
+        self.CorrPred = []
+        self.Pred=[]
+    def on_epoch_end(self, epoch, logs={}):
+        if epoch in [5, 10, 30, 50, 70, 90, 110]:
+            predicted_prob = self.model.predict(self.train_gen)
+            self.confidence.append(np.mean(predicted_prob, axis=0))
+        if epoch in [10, 50, 100]:
+            pred = np.argmax(predicted_prob,axis=1)
+            predicted = self.n_class*[0]
+            correct = self.n_class*[0]
+            for i in range (self.n_class) :
+                predicted[i] = np.size(np.where(pred==i))
+                correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i))
+                self.Pred.append(predicted)
+                self.CorrPred.appedn(correct)
+        y = self.model.predict(self.test_gen)
+        y_pred = K.constant(y)
+        y_true = K.constant(self.test_gen.labels)
+        self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
+        print('AccperClass : ', self.train_acc_class[-1])
+
 def step_decay(epoch):
     initial_lrate = 0.01
     drop = 0.1
@@ -134,12 +167,9 @@ def get_model_imagenet():
 	])
 	return(model)
 
-
 def step_decay_imagenet(epoch):
     initial_lrate = 0.01
     drop = 0.1
     epochs_drop = 10 # NOTE - only difference from cifar10 step decay
     lrate = initial_lrate * math.pow(drop,math.floor((1+epoch)/epochs_drop))
     return lrate
-
-get_model_imagenet()
