@@ -9,6 +9,7 @@ from data import add_noise
 
 # read the data
 (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
+datagen=augmentCifar(x_train)
 
 noise_rates_sym=[0.2]#,0.3,0.4]
 noise_rates_asym=[0.2,0.4,0.6,0.8]
@@ -36,7 +37,15 @@ for noise_rate in noise_rates_sym: #change here for assym
     loss_history = LossHistory()
     Metr = Metrics(model, x_train, y_train, labels, x_test, y_test)
     lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
+    # https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
+    # according to source aboove and code on github I think the training/fit should be:
+    '''model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
+                        steps_per_epoch=len(x_train) / batch_size, epochs=10,
+                        validation_data=(x_test, y_test),
+                        callbacks==[loss_history, lrate, Metr]
+                        )'''
     H = model.fit(x_train,y_train, epochs=10, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
+
    
     confidence = np.asarray(Metr.confidence)
     print(confidence)
