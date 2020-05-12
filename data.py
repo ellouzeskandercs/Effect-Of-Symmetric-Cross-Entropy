@@ -30,8 +30,8 @@ def load_cifar10():
 	return ((x_train, y_train), (x_valid, y_valid), (x_test, y_test))
 
 def augmentCifar(x_train):
-		datagen = ImageDataGenerator(width_shift_range=0.2,height_shift_range=0.2,horizontal_flip=True)
-		datagen.fit(x_train)
+	datagen = ImageDataGenerator(width_shift_range=0.2,height_shift_range=0.2,horizontal_flip=True)
+	datagen.fit(x_train)
 	return datagen
 
 def one_hot(labels, n_classes):
