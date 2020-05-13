@@ -9,12 +9,13 @@ dataset = 'imagenet'
 small_dataset = True
 
 batch_size = 32
+n_epochs = 120
 
 # read the data
 if dataset == 'cifar10':
     (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
     datagen=augmentCifar(x_train)
-    labels=y_train
+    labels=y_train # maybe not needed?
     n_classes=10
 
 elif dataset == 'imagenet':
@@ -51,7 +52,7 @@ for noise_rate in noise_rates_sym: #change here for assym
                         validation_data=(x_test, y_test),
                         callbacks==[loss_history, lrate, Metr]
                         )'''
-        H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / 120, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
+        H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
     if dataset == 'imagenet':
         # TODO - set parameters for optimal training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
@@ -62,33 +63,40 @@ for noise_rate in noise_rates_sym: #change here for assym
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
         H = model.fit(train_data_gen, steps_per_epoch=10, epochs=2, validation_data=validation_data_gen, validation_steps=10, callbacks=[loss_history,lrate, Metr])
 
+    # todo - save all data to files
+    # todo - save the trained model
+
+    # ploting the prediction confidence, TODO - plot only one specific class
     confidence = np.asarray(Metr.confidence)
-    print(confidence)
-    print(confidence.shape)
-    fig1 = plt.figure()
-    plt.bar(np.arange(confidence.shape[0]) + 1, confidence, color='r')
-    plt.bar(np.arange(confidence.shape[0]) + 1, confidence, color='b')
-    plt.legend()
-    fig1.show()
-    fig = plt.figure()
-    ax = fig.add_axes([0, 0, 1, 1])
-    fig2 = plt.figure()
+    # print(confidence)
+    # print(confidence.shape)
+    # fig1 = plt.figure()
+    # plt.bar(np.arange(confidence.shape[0]) + 1, confidence, color='r')
+    # plt.bar(np.arange(confidence.shape[0]) + 1, confidence, color='b')
+    # plt.legend()
+    # fig1.show()
+    # fig = plt.figure()
+    # ax = fig.add_axes([0, 0, 1, 1])
+    # fig2 = plt.figure()
     plt.plot(confidence)
     plt.xticks(np.arange(confidence.shape[0]))
-    fig2.show
-    plt.show()
-    plt.savefig('./ConfidenceCE'+str(NoiseRate)+'.png')
+    # fig2.show
+    # plt.show()
+    plt.savefig('./ConfidenceCE'+str(noise_rate)+'.png')
+    plt.close()
 
     Accuracies = np.array(Metr.train_acc_class).transpose()
-    for i in range(10):
-         plt.plot(range(60),Accuracies[i,:],'--',label='class'+str(i))
-    plt.plot(range(60),H.history['val_accuracy'][:],'-r',label='overall')
+    for i in range(n_classes):
+         plt.plot(range(n_epochs),Accuracies[i,:],'--',label='class'+str(i))
+    plt.plot(range(n_epochs),H.history['val_accuracy'][:],'-r',label='overall')
     plt.legend()
-    noise_rate = 0
-    plt.savefig('./AccuracyperclassCE'+str(NoiseRate)+'.png')
+    # noise_rate = 0
+    plt.savefig('./AccuracyperclassCE'+str(noise_rate)+'.png')
+    plt.close()
 
+    # plot the bar diagram (prediction distribution)
     fig, ax = plt.subplots()
-    index = np.arange(10)
+    index = np.arange(n_classes)
     bar_width = 0.35
     opacity = 0.8
     rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
@@ -99,4 +107,5 @@ for noise_rate in noise_rates_sym: #change here for assym
     plt.ylabel('Number of samples')
     plt.title('Confidence distribution')
     plt.legend()
-    plt.savefig('./PredictionDistrCE'+str(NoiseRate)+'.png')
+    plt.savefig('./PredictionDistrCE'+str(noise_rate)+'.png')
+    plt.close()

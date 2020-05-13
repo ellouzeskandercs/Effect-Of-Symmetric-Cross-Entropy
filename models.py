@@ -67,13 +67,13 @@ class Metrics(tf.keras.callbacks.Callback):
             self.confidence.append(np.mean(predicted_prob, axis=0))
         if epoch in [50, 100]:
             pred = np.argmax(predicted_prob,axis=1)
-            predicted = 10*[0]
-            correct = 10*[0]
-        for i in range (self.n_class) :
-            predicted[i] = np.size(np.where(pred==i))
-            correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i))
+            predicted = self.n_class*[0]
+            correct = self.n_class*[0]
+            for i in range (self.n_class) :
+                predicted[i] = np.size(np.where(pred==i)) # number of samples predicted to be class i
+                correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i)) # number of samples that are correctly classified to class i
             self.Pred.append(predicted)
-            self.CorrPred.appedn(correct)
+            self.CorrPred.append(correct)
         y = self.model.predict(self.X_test)
         y_pred = K.constant(y)
         y_true = K.constant(self.y_test)
@@ -92,21 +92,22 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         self.n_class = n_classes
         self.train_acc_class = []
         self.confidence = []
-        self.CorrPred = []
+        self.trainCorrPred = []
         self.Pred=[]
     def on_epoch_end(self, epoch, logs={}):
         if epoch in [5, 10, 30, 50, 70, 90, 110]:
             predicted_prob = self.model.predict(self.train_gen)
             self.confidence.append(np.mean(predicted_prob, axis=0))
-        if epoch in [10, 50, 100]:
+        if epoch in [50, 100]:
+            predicted_prob = self.model.predict(self.train_gen)
             pred = np.argmax(predicted_prob,axis=1)
             predicted = self.n_class*[0]
             correct = self.n_class*[0]
             for i in range (self.n_class) :
                 predicted[i] = np.size(np.where(pred==i))
                 correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i))
-                self.Pred.append(predicted)
-                self.CorrPred.appedn(correct)
+            self.Pred.append(predicted)
+            self.CorrPred.appedn(correct)
         y = self.model.predict(self.test_gen)
         y_pred = K.constant(y)
         y_true = K.constant(self.test_gen.labels)
