@@ -160,12 +160,23 @@ def plotImages(images_arr):
 	plt.tight_layout()
 	plt.show()
 
+''' ARGS: dataset = str, data = imagegenerator (contains both image data and labels), n_classes = int, noise_rate = float, type = str '''
+''' RETURN: updated imagegenerator '''
+def add_noise_tiny(dataset, data, n_classes, noise_rate, type):
+	clean_labels = data.labels
+	noisy_labels = add_noise(dataset, clean_labels, n_classes, noise_rate, type)
+	data.classes = noisy_labels
+	new_labels = data.labels
+	return data
 
 ''' add noise to data (of type symmetric or assymmetric) '''
 def add_noise(dataset,labels,n_classes,noise_rate,type):
-	if dataset not in ['cifar10', 'imageNet']:
-		print("ERROR: dataset must be 'cifar10' or 'imageNet'")
+	if dataset not in ['cifar10', 'imagenet']:
+		print("ERROR: dataset must be 'cifar10' or 'imagenet'")
 		return
+
+	if dataset == 'imagenet': # make imagenet's 1D labels into 2D np.array
+		labels = np.array([labels]).transpose()
 
 	noisy_labels=np.copy(labels)
 	if type=='sym':
@@ -188,12 +199,12 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
-		if dataset=='imageNet':
-			#40 switched classes randomly
+		if dataset=='imagenet':
+			n_switched_classes = 40 # 40 switched classes randomly
 			flip={}
-			from_class=np.random.uniform(0,200,40)
-			to_class=np.random.uniform(0,200,40)
-			for i in range(40):
+			from_class=np.random.randint(0, n_classes, n_switched_classes)
+			to_class=np.random.randint(0, n_classes, n_switched_classes)
+			for i in range(n_switched_classes):
 				flip[from_class[i]]=to_class[i]
 			for i in flip.keys():
 				ind_for_class = np.where(np.equal(labels,i))[0]
@@ -201,12 +212,19 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
+	if dataset == 'imagenet':
+		noisy_labels = noisy_labels.transpose()[0]
+
 	return noisy_labels
 
-# restructure_validation_data() # only need to be run once
-# load_tiny('train')
-# load_tiny_test()
+def main():
+	# (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
+	# noisy_labels = add_noise('cifar10',y_train,10,0.2,'sym')
 
-# (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
-# noisy_labels = add_noise('cifar10',y_train,10,0.2,'sym')
-# print(len(noisy_labels))
+	# restructure_validation_data() # only need to be run once
+	train_data_gen, _, _ = load_tiny('train')
+	# load_tiny_test()
+	noisy_train_data_gen = add_noise_tiny('imagenet', train_data_gen, 200, 0.2, 'sym')
+
+if __name__ == '__main__':
+	main()
