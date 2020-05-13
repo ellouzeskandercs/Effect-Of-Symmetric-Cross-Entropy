@@ -64,7 +64,7 @@ def restructure_validation_data():
 
 
 ''' read Tiny ImageNet dataset '''
-def load_tiny(mode):
+def load_tiny(mode, batch_size):
 	"""Generate data set based on mode.
 	Args:
 		mode: 'train' or 'val'
@@ -100,7 +100,7 @@ def load_tiny(mode):
 	else:
 		image_generator = ImageDataGenerator(rescale=1./255)
 
-	data_gen = image_generator.flow_from_directory(batch_size=32,
+	data_gen = image_generator.flow_from_directory(batch_size=batch_size,
 														directory=dir,
 														shuffle=True,
 														target_size=(64, 64),
@@ -109,11 +109,11 @@ def load_tiny(mode):
 	return data_gen, label_dict, class_description
 
 
-def load_tiny_test():
+def load_tiny_test(batch_size):
 	''' Returns the Tiny ImageNet test images (withour labels) as a Keras DirectoryIterator '''
 	dir = 'datasets/tiny-imagenet-200/test'
 	image_generator = ImageDataGenerator(rescale=1./255)
-	data_gen = image_generator.flow_from_directory(batch_size=32,
+	data_gen = image_generator.flow_from_directory(batch_size=batch_size,
 														directory=dir,
 														shuffle=True,
 														target_size=(64, 64),

@@ -171,7 +171,7 @@ def get_model_imagenet():
 		- Xavier initialization (glorot_normal) of weights, biases initialized to zero
 		[[conv-relu]x2-pool]x2-[conv-relu-pool]-[fc]x3-softmax
 	'''
-	lamda = 0.0005 # maybe need to be set higher unless we reach 2M training samples by data ugmentation
+	lamda = 0.0005 # maybe need to be set higher since we don't do as much data augmentation as the original article
 	dropout_rate = 0.5
 	model = tf.keras.Sequential([
 		tf.keras.layers.Conv2D(filters=128, kernel_size=3, padding='same', strides=1, input_shape=(64,64,3), activation='relu', kernel_initializer='glorot_normal', bias_initializer='zeros', name='layer1_conv'),
@@ -194,7 +194,7 @@ def get_model_imagenet():
 	return(model)
 
 def step_decay_imagenet(epoch):
-    initial_lrate = 0.01
+    initial_lrate = 0.001
     drop = 0.1
     epochs_drop = 10 # NOTE - only difference from cifar10 step decay
     lrate = initial_lrate * math.pow(drop,math.floor((1+epoch)/epochs_drop))
