@@ -61,11 +61,14 @@ class Metrics(tf.keras.callbacks.Callback):
         self.confidence = []
         self.CorrPred = []
         self.Pred=[]
+        self.ValCorrPred = []
+        self.ValPred=[]
     def on_epoch_end(self, epoch, logs={}):
         if epoch in [5, 10, 30, 50, 70, 90, 110]:
             predicted_prob = self.model.predict(self.X_train)
             self.confidence.append(np.mean(predicted_prob, axis=0))
         if epoch in [50, 100]:
+            predicted_prob = self.model.predict(self.X_train)
             pred = np.argmax(predicted_prob,axis=1)
             predicted = self.n_class*[0]
             correct = self.n_class*[0]
@@ -74,6 +77,16 @@ class Metrics(tf.keras.callbacks.Callback):
                 correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i)) # number of samples that are correctly classified to class i
             self.Pred.append(predicted)
             self.CorrPred.append(correct)
+        if epoch in [50, 100]:
+            predicted_prob = self.model.predict(self.X_test)
+            pred = np.argmax(predicted_prob,axis=1)
+            val_predicted = self.n_class*[0]
+            val_correct = self.n_class*[0]
+            for i in range (self.n_class) :
+                val_predicted[i] = np.size(np.where(pred==i)) # number of samples predicted to be class i
+                val_correct[i]   = np.size(np.where(self.y_test[np.where(pred==i)]==i)) # number of samples that are correctly classified to class i
+            self.ValPred.append(val_predicted)
+            self.ValCorrPred.append(val_correct)
         y = self.model.predict(self.X_test)
         y_pred = K.constant(y)
         y_true = K.constant(self.y_test)
@@ -92,8 +105,10 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         self.n_class = n_classes
         self.train_acc_class = []
         self.confidence = []
-        self.trainCorrPred = []
+        self.CorrPred = []
         self.Pred=[]
+        self.ValCorrPred = []
+        self.ValPred=[]
     def on_epoch_end(self, epoch, logs={}):
         if epoch in [5, 10, 30, 50, 70, 90, 110]:
             predicted_prob = self.model.predict(self.train_gen)
@@ -108,6 +123,16 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
                 correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i))
             self.Pred.append(predicted)
             self.CorrPred.appedn(correct)
+        if epoch in [50, 100]:
+            predicted_prob = self.model.predict(self.test_gen)
+            pred = np.argmax(predicted_prob,axis=1)
+            predicted = self.n_class*[0]
+            correct = self.n_class*[0]
+            for i in range (self.n_class) :
+                val_predicted[i] = np.size(np.where(pred==i))
+                val_correct[i] = np.size(np.where(self.test_gen.labels[np.where(pred==i)]==i))
+            self.ValPred.append(val_predicted)
+            self.ValCorrPred.append(val_correct)
         y = self.model.predict(self.test_gen)
         y_pred = K.constant(y)
         y_true = K.constant(self.test_gen.labels)
