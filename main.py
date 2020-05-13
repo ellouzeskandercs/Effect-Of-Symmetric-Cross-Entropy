@@ -5,9 +5,10 @@ import matplotlib as plt
 import numpy as np
 
 # dataset = 'cifar10'
-dataset = 'imagenet'
+dataset = ['imagenet', 'cifar10']
 small_dataset = True
-noise_type = 'sym'
+noise_type = ['sym', 'asym']
+loss = ['CE', 'SL']
 
 batch_size = 32
 n_epochs = 120
@@ -69,23 +70,12 @@ for noise_rate in noise_rates:
     # todo - save all data to files
     # todo - save the trained model
 
-    # ploting the prediction confidence, TODO - plot only one specific class
+    # plotting the prediction confidence, TODO - plot only one specific class
     confidence = np.asarray(Metr.confidence)
-    # print(confidence)
-    # print(confidence.shape)
-    # fig1 = plt.figure()
-    # plt.bar(np.arange(confidence.shape[0]) + 1, confidence, color='r')
-    # plt.bar(np.arange(confidence.shape[0]) + 1, confidence, color='b')
-    # plt.legend()
-    # fig1.show()
-    # fig = plt.figure()
-    # ax = fig.add_axes([0, 0, 1, 1])
-    # fig2 = plt.figure()
     plt.plot(confidence)
     plt.xticks(np.arange(confidence.shape[0]))
-    # fig2.show
-    # plt.show()
-    plt.savefig('./ConfidenceCE'+str(noise_rate)+'.png')
+    filename_confidence = './Confidence_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + '.png'
+    plt.savefig(filename_confidence)
     plt.close()
 
     Accuracies = np.array(Metr.train_acc_class).transpose()
@@ -94,7 +84,8 @@ for noise_rate in noise_rates:
     plt.plot(range(n_epochs),H.history['val_accuracy'][:],'-r',label='overall')
     plt.legend()
     # noise_rate = 0
-    plt.savefig('./AccuracyperclassCE'+str(noise_rate)+'.png')
+    filename_accperclass = './AccuracyPerClass_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + '.png'
+    plt.savefig(filename_accperclass)
     plt.close()
 
     # plot the bar diagram (prediction distribution)
@@ -110,5 +101,10 @@ for noise_rate in noise_rates:
     plt.ylabel('Number of samples')
     plt.title('Confidence distribution')
     plt.legend()
-    plt.savefig('./PredictionDistrCE'+str(noise_rate)+'.png')
+    filename_PredictionDist = './PredictionDistr_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + '.png'
+    plt.savefig(filename_PredictionDist)
     plt.close()
+
+    # Save model
+    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + '.png'
+    model.save(filename_model)
