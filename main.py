@@ -106,5 +106,5 @@ for noise_rate in noise_rates:
     plt.close()
 
     # Save model
-    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + '.png'
+    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) 
     model.save(filename_model)
