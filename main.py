@@ -7,6 +7,7 @@ import numpy as np
 # dataset = 'cifar10'
 dataset = 'imagenet'
 small_dataset = True
+noise_type = 'sym'
 
 batch_size = 32
 n_epochs = 120
@@ -25,12 +26,14 @@ elif dataset == 'imagenet':
     labels = train_data_gen.labels
     n_classes=200
 
-noise_rates_sym=[0.2]#,0.3,0.4]
-noise_rates_asym=[0.2,0.4,0.6,0.8]
+if noise_type == 'sym':
+    noise_rates=[0.2]#,0.3,0.4]
+else:
+    noise_rates=[0.2,0.4,0.6,0.8]
 
-for noise_rate in noise_rates_sym: #change here for assym
+for noise_rate in noise_rates:
     # TODO - add noise to the ImageNet data
-	# y_train=add_noise(dataset,labels,n_classes,noise_rate,type='sym')
+	# y_train=add_noise(dataset,labels,n_classes,noise_rate,type=noise_type)
     if small_dataset and dataset == 'cifar10':
         x_train = x_train[:100,:,:,:]
         y_train = y_train[:100,:]
