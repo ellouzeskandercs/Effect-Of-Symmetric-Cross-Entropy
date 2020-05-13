@@ -39,8 +39,6 @@ else: # 'asym'
     noise_rates=[0.2,0.4,0.6,0.8]
 
 for noise_rate in noise_rates:
-    # TODO - add noise to the ImageNet data
-	# y_train=add_noise(dataset,labels,n_classes,noise_rate,type=noise_type)
     loss_type = 'CE'
     if small_dataset and dataset_type == 'cifar10':
         x_train = x_train[:10,:,:,:]
