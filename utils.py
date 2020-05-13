@@ -8,13 +8,15 @@ def save_metrics(metrics, history, dataset_type, loss_type, noise_type, noise_ra
 
 	confidence = np.asarray(metrics.confidence)
 	class_accuracies = np.array(metrics.train_acc_class).transpose()
-	prediction_distribution = metrics.Pred, metrics.CorrPred
+	prediction_distribution = metrics.Pred
+	prediction_distribution_correct = metrics.CorrPred
 	# prediction_distribution = metrics.Pred[0], metrics.CorrPred[0], metrics.Pred[1], metrics.CorrPred[1]
-	overall_accuracy = history.history['acc']
-	overall_val_accuracy = history.history['val_acc']
+	overall_accuracy = history.history['accuracy']
+	overall_val_accuracy = history.history['val_accuracy']
 
 	np.savetxt('./Confidence_' + curr_test_filename, confidence)
 	np.savetxt('./AccuracyPerClass_' + curr_test_filename, class_accuracies)
 	np.savetxt('./PredictionDistr_' + curr_test_filename, prediction_distribution)
+	np.savetxt('./PredictionDistrCorrect_' + curr_test_filename, prediction_distribution_correct)
 	np.savetxt('./Accuracy_' + curr_test_filename, overall_accuracy)
 	np.savetxt('./ValidationAccuracy_' + curr_test_filename, overall_val_accuracy)
