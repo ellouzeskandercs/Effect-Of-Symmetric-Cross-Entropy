@@ -3,6 +3,7 @@ from models import *
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
+from utils import save_metrics
 
 datase_type = 'cifar10'
 dataset = ['imagenet', 'cifar10']
@@ -71,6 +72,8 @@ for noise_rate in noise_rates:
         H = model.fit(train_data_gen, steps_per_epoch=10, epochs=2, validation_data=validation_data_gen, validation_steps=10, callbacks=[loss_history,lrate, Metr])
 
     # todo - save all data to files
+    save_metrics(Metr, history, dataset_type, loss_type, noise_type, noise_rate):
+
     # todo - save the trained model
 
     # plotting the prediction confidence, TODO - plot only one specific class
@@ -138,6 +141,7 @@ for noise_rate in noise_rates:
         H = model.fit(train_data_gen, steps_per_epoch=10, epochs=2, validation_data=validation_data_gen, validation_steps=10, callbacks=[loss_history,lrate, Metr])
 
     # todo - save all data to files
+    save_metrics(Metr, history, dataset_type, loss_type, noise_type, noise_rate):
     # todo - save the trained model
 
     # plotting the prediction confidence, TODO - plot only one specific class
