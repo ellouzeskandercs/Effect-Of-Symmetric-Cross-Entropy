@@ -7,7 +7,7 @@ from utils import save_metrics
 
 dataset_type = 'imagenet'
 dataset_type = 'cifar10'
-small_dataset = True
+small_dataset = False
 noise_type = 'sym'
 noise_type = 'asym'
 # loss = ['CE', 'SL']
@@ -22,12 +22,12 @@ if dataset_type == 'cifar10':
     labels=y_train # maybe not needed?
 
 elif dataset_type == 'imagenet':
-    n_classes=200
-    n_epochs = 200 # not used if using early stopping
+    n_classes= 200
+    n_epochs = 10 # not used if using early stopping
     batch_size = 128 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
     steps_per_epoch = int(np.ceil(100000 / batch_size)) # 100 000 = number of training samples
     steps_per_val = int(np.ceil(10000 / batch_size))
-    train_data_gen, _, _ = load_tiny('train', batch_size)
+    train_data_gen, _, _ = load_tiny('val', batch_size)
     validation_data_gen, _, _ = load_tiny('val', batch_size)
     test_data_gen = load_tiny_test(batch_size)
     labels = train_data_gen.labels
@@ -65,6 +65,8 @@ for noise_rate in noise_rates:
     if dataset_type == 'imagenet':
         # training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
         model = get_model_imagenet()
+        #tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+        #loss='MSE'
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy'])
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
@@ -89,6 +91,9 @@ for noise_rate in noise_rates:
     plt.legend()
     # noise_rate = 0
     filename_accperclass = './AccuracyPerClass_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
+    plt.title('Accuracy')
+    plt.xlabel('Number of epochs')
+    plt.ylabel('Class-wise test accuracy')
     plt.savefig(filename_accperclass)
     plt.close()
 
@@ -125,7 +130,7 @@ for noise_rate in noise_rates:
     if dataset_type == 'imagenet':
         # training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
         model = get_model_imagenet()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False), loss=symmetric_cross_entropy, metrics=['accuracy'])
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
@@ -162,9 +167,9 @@ for noise_rate in noise_rates:
     rects = []
     colors_pred = ['lightblue', 'lightcoral', 'lightgreen']
     colors_corrpred = ['cornflowerblue', 'purple', 'green']
-    for batch_idx in len(Metr.Pred):
-        rects[batch_idx] = plt.bar(index + batch_saved * bar_width, Metr.Pred[batch_idx], bar_width, alpha=opacity, color=colors_pred[batch_idx], label='Predicted - Epoch ' + str(batch_idx))
-        rects[batch_idx] = plt.bar(index + batch_saved * bar_width, Metr.CorrPred[batch_idx], bar_width, alpha=opacity, color=colors_corrpred[batch_idx], label='Correct - Epoch ' + str(batch_idx))
+    for batch_idx in range (len(Metr.Pred)):
+        rects[batch_idx] = plt.bar(index + batch_idx * bar_width, Metr.Pred[batch_idx], bar_width, alpha=opacity, color=colors_pred[batch_idx], label='Predicted - Epoch ' + str(batch_idx))
+        rects[batch_idx] = plt.bar(index + batch_idx * bar_width, Metr.CorrPred[batch_idx], bar_width, alpha=opacity, color=colors_corrpred[batch_idx], label='Correct - Epoch ' + str(batch_idx))
     # rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
     # rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
     # rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
