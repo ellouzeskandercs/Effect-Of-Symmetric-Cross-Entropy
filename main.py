@@ -1,7 +1,7 @@
 from data import *
 from models import *
 import tensorflow as tf
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
 
 datase_type = 'cifar10'
@@ -50,7 +50,7 @@ for noise_rate in noise_rates:
         model = get_model()
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy']) # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
         loss_history = LossHistory()
-        Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,100)
+        Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
         # https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
         # according to source aboove and code on github I think the training/fit should be:
@@ -77,7 +77,7 @@ for noise_rate in noise_rates:
     confidence = np.asarray(Metr.confidence)
     plt.plot(confidence)
     plt.xticks(np.arange(confidence.shape[0]))
-    filename_confidence = './Confidence_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) '.png'
+    filename_confidence = './Confidence_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
     plt.savefig(filename_confidence)
     plt.close()
 
@@ -115,9 +115,9 @@ for noise_rate in noise_rates:
     loss_type = 'SL'
     if dataset_type == 'cifar10':
         model = get_model()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss='symmetric_cross_entropy',metrics=['accuracy']) # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy']) # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
         loss_history = LossHistory()
-        Metr = Metrics(model, x_train, y_train, labels, x_test, y_test)
+        Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
         # https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
         # according to source aboove and code on github I think the training/fit should be:
@@ -131,7 +131,7 @@ for noise_rate in noise_rates:
     if dataset_type == 'imagenet':
         # TODO - set parameters for optimal training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
         model = get_model_imagenet()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss='symmetric_cross_entropy',metrics=['accuracy']) # TODO - update loss function to correct one
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy']) # TODO - update loss function to correct one
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, 200)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
