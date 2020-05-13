@@ -47,7 +47,7 @@ def accperclass(y_true,y_pred,c):
     return(K.sum(K.cast(K.all(K.stack([z, e], axis=0), axis=0),'int32'))/K.maximum(1,K.sum(K.cast(e,'int32'))))
 
 class Metrics(tf.keras.callbacks.Callback):
-    def __init__(self, model, X_train, y_train, y_train_clean, X_test, y_test):
+    def __init__(self, model, X_train, y_train, y_train_clean, X_test, y_test,n_class):
         super(Metrics, self).__init__()
         self.model = model
         self.X_train = X_train
@@ -55,7 +55,7 @@ class Metrics(tf.keras.callbacks.Callback):
         self.y_train_clean = y_train_clean
         self.X_test = X_test
         self.y_test = y_test
-        self.n_class = y_train.shape[1]
+        self.n_class = n_class
 
         self.train_acc_class = []
         self.confidence = []
