@@ -159,10 +159,16 @@ for noise_rate in noise_rates:
     index = np.arange(n_classes)
     bar_width = 0.35
     opacity = 0.8
-    rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
-    rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
-    rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
-    rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
+    rects = []
+    colors_pred = ['lightblue', 'lightcoral', 'lightgreen']
+    colors_corrpred = ['cornflowerblue', 'purple', 'green']
+    for batch_idx in len(Metr.Pred):
+        rects[batch_idx] = plt.bar(index + batch_saved * bar_width, Metr.Pred[batch_idx], bar_width, alpha=opacity, color=colors_pred[batch_idx], label='Predicted - Epoch ' + str(batch_idx))
+        rects[batch_idx] = plt.bar(index + batch_saved * bar_width, Metr.CorrPred[batch_idx], bar_width, alpha=opacity, color=colors_corrpred[batch_idx], label='Correct - Epoch ' + str(batch_idx))
+    # rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
+    # rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
+    # rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
+    # rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
     plt.xlabel('Class')
     plt.ylabel('Number of samples')
     plt.title('Confidence distribution')
