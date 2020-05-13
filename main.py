@@ -76,6 +76,7 @@ for noise_rate in noise_rates:
         H = model.fit(train_data_gen, steps_per_epoch=steps_per_epoch, epochs=n_epochs, validation_data=validation_data_gen, validation_steps=steps_per_val, callbacks=[loss_history,lrate, Metr, es])
 
 
+    save_metrics(Metr, H, dataset_type, loss_type, noise_type, noise_rate)
     # plotting the prediction confidence, TODO - plot only one specific class
     confidence = np.asarray(Metr.confidence)
     plt.plot(confidence)
@@ -112,7 +113,7 @@ for noise_rate in noise_rates:
     plt.close()
 
     # Save model
-    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
+    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.txt'
     model.save(filename_model)
 
     loss_type = 'SL'
@@ -132,16 +133,17 @@ for noise_rate in noise_rates:
         H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
     if dataset_type == 'imagenet':
-        # TODO - set parameters for optimal training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
+        # training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
         model = get_model_imagenet()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy']) # TODO - update loss function to correct one
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy'])
         loss_history = LossHistory()
-        Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, 200)
+        Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
-        H = model.fit(train_data_gen, steps_per_epoch=10, epochs=2, validation_data=validation_data_gen, validation_steps=10, callbacks=[loss_history,lrate, Metr])
+        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=25) # https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/EarlyStopping
+        H = model.fit(train_data_gen, steps_per_epoch=steps_per_epoch, epochs=n_epochs, validation_data=validation_data_gen, validation_steps=steps_per_val, callbacks=[loss_history,lrate, Metr, es])
 
     # todo - save all data to files
-    save_metrics(Metr, history, dataset_type, loss_type, noise_type, noise_rate):
+    save_metrics(Metr, H, dataset_type, loss_type, noise_type, noise_rate)
     # todo - save the trained model
 
     # plotting the prediction confidence, TODO - plot only one specific class
@@ -180,5 +182,5 @@ for noise_rate in noise_rates:
     plt.close()
 
     # Save model
-    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
+    filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.txt'
     model.save(filename_model)
