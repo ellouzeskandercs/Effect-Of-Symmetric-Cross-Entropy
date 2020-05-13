@@ -6,11 +6,11 @@ import numpy as np
 from utils import save_metrics
 
 dataset_type = 'imagenet'
-dataset = ['imagenet', 'cifar10']
+dataset_type = 'cifar10'
 small_dataset = True
-#noise_type = ['sym', 'asym']
 noise_type = 'sym'
-loss = ['CE', 'SL']
+noise_type = 'asym'
+# loss = ['CE', 'SL']
 
 # read the data and set params
 if dataset_type == 'cifar10':
@@ -49,20 +49,19 @@ for noise_rate in noise_rates:
         x_test = x_test[:10,:,:,:]
         y_test = y_test[:10,:]
 
+    # add noise to training data - will be used for both models
+    if dataset_type == 'cifar10':
+        y_train = add_noise(dataset_type,labels,n_classes,noise_rate,type=noise_type)
+    if dataset_type == 'imagenet':
+        train_data_gen = add_noise_tiny(dataset_type, train_data_gen, n_classes, noise_rate, noise_type)
+
 	# train the model
     if dataset_type == 'cifar10':
         model = get_model()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy']) # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy'])
         loss_history = LossHistory()
         Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
-        # https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
-        # according to source aboove and code on github I think the training/fit should be:
-        '''model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                        steps_per_epoch=len(x_train) / batch_size, epochs=10,
-                        validation_data=(x_test, y_test),
-                        callbacks==[loss_history, lrate, Metr]
-                        )'''
         H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
     if dataset_type == 'imagenet':
@@ -119,17 +118,10 @@ for noise_rate in noise_rates:
     loss_type = 'SL'
     if dataset_type == 'cifar10':
         model = get_model()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy']) # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy'])
         loss_history = LossHistory()
         Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
-        # https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
-        # according to source aboove and code on github I think the training/fit should be:
-        '''model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                        steps_per_epoch=len(x_train) / batch_size, epochs=10,
-                        validation_data=(x_test, y_test),
-                        callbacks==[loss_history, lrate, Metr]
-                        )'''
         H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
     if dataset_type == 'imagenet':
