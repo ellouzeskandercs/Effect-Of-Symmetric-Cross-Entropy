@@ -93,7 +93,7 @@ class Metrics(tf.keras.callbacks.Callback):
         y_true = K.constant(self.y_test)
         self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
         z = np.argmax(y,axis=1).reshape(self.y_test.shape) - self.y_test
-        self.acc.append(np.size(np.where(z==0))/2*np.size(self.y_test))
+        self.acc.append(np.size(np.where(z==0))/(2*np.size(self.y_test)))
         print('AccperClass : ', self.train_acc_class[-1], ' Accuracy :',self.acc[-1])
 
 class Metrics_imagenet(tf.keras.callbacks.Callback):
@@ -107,6 +107,7 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         # self.y_test = y_test
         self.n_class = n_classes
         self.train_acc_class = []
+        self.acc =[]
         self.confidence = []
         self.CorrPred = []
         self.Pred=[]
@@ -141,7 +142,7 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         y_true = K.constant(self.test_gen.labels)
         self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
         z = np.argmax(y,axis=1).reshape(self.y_test.shape) - self.y_test
-        self.acc.append(np.size(np.where(z==0))/2*np.size(self.y_test))
+        self.acc.append(np.size(np.where(z==0))/(2*np.size(self.y_test)))
         print('AccperClass : ', self.train_acc_class[-1],' Accuracy :',self.acc[-1])
 
 def step_decay(epoch):
