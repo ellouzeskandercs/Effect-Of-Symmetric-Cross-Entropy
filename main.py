@@ -54,6 +54,7 @@ for noise_rate in noise_rates:
         train_data_gen = add_noise_tiny(dataset_type, train_data_gen, n_classes, noise_rate, noise_type)
 
 	# train the model
+    print('Training with ',dataset_type,' dataset and using a ',noise_type,' noise rate ',noise_rate)
     if dataset_type == 'cifar10':
         model = get_model()
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False))
@@ -119,6 +120,7 @@ for noise_rate in noise_rates:
     model.save(filename_model)
 
     loss_type = 'SL'
+    print('Training with ',dataset_type,' dataset and using a ',noise_type,' noise rate ',noise_rate)
     if dataset_type == 'cifar10':
         model = get_model()
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy)
