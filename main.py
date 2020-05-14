@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import save_metrics
 
-dataset_type = 'imagenet'
+#dataset_type = 'imagenet'
 dataset_type = 'cifar10'
 small_dataset = False
 noise_type = 'sym'
-noise_type = 'asym'
+#noise_type = 'asym'
 # loss = ['CE', 'SL']
 
 # read the data and set params
@@ -34,7 +34,7 @@ elif dataset_type == 'imagenet':
 
 
 if noise_type == 'sym':
-    noise_rates=[0.2]#,0.3,0.4]
+    noise_rates=[0.2,0.3,0.4]
 else: # 'asym'
     noise_rates=[0.2,0.4,0.6,0.8]
 
