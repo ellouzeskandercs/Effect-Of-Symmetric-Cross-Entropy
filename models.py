@@ -94,7 +94,7 @@ class Metrics(tf.keras.callbacks.Callback):
         self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
         z = np.argmax(y,axis=1).reshape(y_test.shape) - y_test
         self.acc.append(np.size(np.where(z==0))/2*np.size(y_test))
-        print('AccperClass : ', self.train_acc_class[-1], ' Accuracy :',self.acc)
+        print('AccperClass : ', self.train_acc_class[-1], ' Accuracy :',self.acc[-1])
 
 class Metrics_imagenet(tf.keras.callbacks.Callback):
     def __init__(self, model, train_gen, test_gen, clean_labels_train, n_classes):
@@ -142,7 +142,7 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         self.train_acc_class.append([K.eval(accperclass(y_true, y_pred, c=i)) for i in range(self.n_class)])
         z = np.argmax(y,axis=1).reshape(y_test.shape) - y_test
         self.acc.append(np.size(np.where(z==0))/2*np.size(y_test))
-        print('AccperClass : ', self.train_acc_class[-1],' Accuracy :',self.acc)
+        print('AccperClass : ', self.train_acc_class[-1],' Accuracy :',self.acc[-1])
 
 def step_decay(epoch):
     initial_lrate = 0.01
