@@ -11,7 +11,6 @@ def save_metrics(metrics, history, dataset_type, loss_type, noise_type, noise_ra
 	prediction_distribution = metrics.Pred
 	prediction_distribution_correct = metrics.CorrPred
 	# prediction_distribution = metrics.Pred[0], metrics.CorrPred[0], metrics.Pred[1], metrics.CorrPred[1]
-	overall_accuracy = history.history['accuracy']
 	overall_val_accuracy = Metr.acc
 
 	np.savetxt('./Confidence_' + curr_test_filename, confidence)
