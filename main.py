@@ -56,7 +56,7 @@ for noise_rate in noise_rates:
 	# train the model
     if dataset_type == 'cifar10':
         model = get_model()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False))
         loss_history = LossHistory()
         Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
@@ -67,7 +67,7 @@ for noise_rate in noise_rates:
         model = get_model_imagenet()
         #tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
         #loss='MSE'
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False))
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
@@ -87,7 +87,7 @@ for noise_rate in noise_rates:
     Accuracies = np.array(Metr.train_acc_class).transpose()
     for i in range(n_classes):
          plt.plot(range(n_epochs),Accuracies[i,:],'--',label='class'+str(i))
-    plt.plot(range(n_epochs),H.history['val_accuracy'][:],'-r',label='overall')
+    plt.plot(range(n_epochs),Metr.acc,'-r',label='overall')
     plt.legend()
     # noise_rate = 0
     filename_accperclass = './AccuracyPerClass_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
@@ -121,7 +121,7 @@ for noise_rate in noise_rates:
     loss_type = 'SL'
     if dataset_type == 'cifar10':
         model = get_model()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy,metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy)
         loss_history = LossHistory()
         Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
@@ -130,7 +130,7 @@ for noise_rate in noise_rates:
     if dataset_type == 'imagenet':
         # training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
         model = get_model_imagenet()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False), loss=symmetric_cross_entropy, metrics=['accuracy'])
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False), loss=symmetric_cross_entropy)
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
@@ -152,7 +152,7 @@ for noise_rate in noise_rates:
     Accuracies = np.array(Metr.train_acc_class).transpose()
     for i in range(n_classes):
          plt.plot(range(n_epochs),Accuracies[i,:],'--',label='class'+str(i))
-    plt.plot(range(n_epochs),H.history['val_accuracy'][:],'-r',label='overall')
+    plt.plot(range(n_epochs),Metr.acc,'-r',label='overall')
     plt.legend()
     # noise_rate = 0
     filename_accperclass = './AccuracyPerClass_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
@@ -167,13 +167,13 @@ for noise_rate in noise_rates:
     rects = []
     colors_pred = ['lightblue', 'lightcoral', 'lightgreen']
     colors_corrpred = ['cornflowerblue', 'purple', 'green']
-    for batch_idx in range (len(Metr.Pred)):
-        rects[batch_idx] = plt.bar(index + batch_idx * bar_width, Metr.Pred[batch_idx], bar_width, alpha=opacity, color=colors_pred[batch_idx], label='Predicted - Epoch ' + str(batch_idx))
-        rects[batch_idx] = plt.bar(index + batch_idx * bar_width, Metr.CorrPred[batch_idx], bar_width, alpha=opacity, color=colors_corrpred[batch_idx], label='Correct - Epoch ' + str(batch_idx))
-    # rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
-    # rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
-    # rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
-    # rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
+    #for batch_idx in range (len(Metr.Pred)):
+        #rects.append(plt.bar(index + batch_idx * bar_width, Metr.Pred[batch_idx], bar_width, alpha=opacity, color=colors_pred[batch_idx], label='Predicted - Epoch ' + str(batch_idx)))
+        #rects[-1] = plt.bar(index + batch_idx * bar_width, Metr.CorrPred[batch_idx], bar_width, alpha=opacity, color=colors_corrpred[batch_idx], label='Correct - Epoch ' + str(batch_idx))
+    rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
+    rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
+    rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
+    rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
     plt.xlabel('Class')
     plt.ylabel('Number of samples')
     plt.title('Confidence distribution')
