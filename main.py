@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import save_metrics
 
-dataset_type = 'imagenet'
-# dataset_type = 'cifar10'
+# dataset_type = 'imagenet'
+dataset_type = 'cifar10'
 small_dataset = False
 noise_type = 'sym'
-#noise_type = 'asym'
+# noise_type = 'asym'
 
 # read the data and set params
 if dataset_type == 'cifar10':
@@ -23,7 +23,7 @@ if dataset_type == 'cifar10':
 elif dataset_type == 'imagenet':
     n_classes= 200
     n_epochs = 400 # not used if using early stopping
-    batch_size = 64 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
+    batch_size = 128 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
     steps_per_epoch = int(np.floor(100000 / batch_size)) # 100 000 = number of training samples
     steps_per_val = int(np.floor(10000 / batch_size))
     train_data_gen = load_tiny('train', batch_size)
@@ -33,11 +33,12 @@ elif dataset_type == 'imagenet':
 
 
 if noise_type == 'sym':
-    noise_rates=[0.2,0.3,0.4]
+    noise_rates=[0.0] #[0.2,0.4] # [0.2,0.3,0.4]
 else: # 'asym'
-    noise_rates=[0.2,0.4,0.6,0.8]
+    noise_rates=[0.2,0.4] #,0.6,0.8]
 
 for noise_rate in noise_rates:
+    tf.keras.backend.clear_session()
     loss_type = 'CE'
     if small_dataset and dataset_type == 'cifar10':
         x_train = x_train[:10,:,:,:]
@@ -53,14 +54,14 @@ for noise_rate in noise_rates:
         train_data_gen = add_noise_tiny(dataset_type, train_data_gen, n_classes, noise_rate, noise_type)
 
 	# train the model
-    print('Training with ',dataset_type,' dataset and using a ',noise_type,' noise rate ',noise_rate)
+    print('(1) Training with CL and ',dataset_type,' dataset and using a ',noise_type,' noise rate ',noise_rate)
     if dataset_type == 'cifar10':
         model = get_model()
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False))
         loss_history = LossHistory()
         Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
-        H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
+        H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=n_epochs, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
     if dataset_type == 'imagenet':
         # training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
@@ -120,15 +121,17 @@ for noise_rate in noise_rates:
     filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.txt'
     model.save(filename_model)
 
+    tf.keras.backend.clear_session()
+
     loss_type = 'SL'
-    print('Training with ',dataset_type,' dataset and using a ',noise_type,' noise rate ',noise_rate)
+    print('(2) Training with SL and ',dataset_type,' dataset and using a ',noise_type,' noise rate ',noise_rate)
     if dataset_type == 'cifar10':
         model = get_model()
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.01, momentum=0.9, decay=0.0001, nesterov=False),loss=symmetric_cross_entropy)
         loss_history = LossHistory()
         Metr = Metrics(model, x_train, y_train, labels, x_test, y_test,10)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay)
-        H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=120, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
+        H = model.fit(datagen.flow(x_train, y_train, batch_size=batch_size), steps_per_epoch=len(x_train) / batch_size, epochs=n_epochs, validation_data=(x_test, y_test), callbacks=[loss_history, lrate, Metr])
 
     if dataset_type == 'imagenet':
         # training according to http://cs231n.stanford.edu/reports/2015/pdfs/leonyao_final.pdf
