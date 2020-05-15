@@ -44,17 +44,20 @@ def one_hot(labels, n_classes):
 
 ''' Only needed to run once, to store validation data in class subdirectories '''
 def restructure_validation_data():
+	print('Restructuring validation data...')
 	dir = 'datasets/tiny-imagenet-200/val'
 	img_dir = dir + '/images'
 	img_dict = {}
 
 	with open('datasets/tiny-imagenet-200/val/val_annotations.txt', 'r') as f:
+		print('Val annotations file opened.')
 		img_cnt = 0
 		for line in f.readlines():
 			split_line = line.split('\t')
 			filename = 'datasets/tiny-imagenet-200/val/images/' + split_line[0]
 			img_dict[split_line[0]] = split_line[1]
 
+	print('Lenght of image dict: ', len(img_dict))
 	for filename, label in img_dict.items():
 		new_dir = (os.path.join(img_dir, label))
 		if not os.path.exists(new_dir):
@@ -62,6 +65,7 @@ def restructure_validation_data():
 		if os.path.exists(os.path.join(img_dir, filename)):
 			os.rename(os.path.join(img_dir, filename), os.path.join(new_dir, filename))
 
+	print('Done restructuring validation data.')
 
 ''' read Tiny ImageNet dataset '''
 def load_tiny(mode, batch_size):
@@ -106,7 +110,7 @@ def load_tiny(mode, batch_size):
 														target_size=(64, 64),
 														class_mode='categorical')
 
-	return data_gen, label_dict, class_description
+	return data_gen #, label_dict, class_description
 
 
 def load_tiny_test(batch_size):
@@ -221,10 +225,7 @@ def main():
 	# (x_train, y_train), (x_valid, y_valid), (x_test, y_test) = load_cifar10()
 	# noisy_labels = add_noise('cifar10',y_train,10,0.2,'sym')
 
-	# restructure_validation_data() # only need to be run once
-	train_data_gen, _, _ = load_tiny('train')
-	# load_tiny_test()
-	noisy_train_data_gen = add_noise_tiny('imagenet', train_data_gen, 200, 0.2, 'sym')
+	restructure_validation_data() # only need to be run once
 
 if __name__ == '__main__':
 	main()

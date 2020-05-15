@@ -104,7 +104,7 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         self.test_gen = test_gen # self.y_train = y_train
         self.y_train_clean = clean_labels_train
         # self.X_test = X_test
-        # self.y_test = y_test
+        self.y_test = test_gen.labels
         self.n_class = n_classes
         self.train_acc_class = []
         self.acc =[]

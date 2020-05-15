@@ -5,12 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import save_metrics
 
-#dataset_type = 'imagenet'
-dataset_type = 'cifar10'
+dataset_type = 'imagenet'
+# dataset_type = 'cifar10'
 small_dataset = False
 noise_type = 'sym'
 #noise_type = 'asym'
-# loss = ['CE', 'SL']
 
 # read the data and set params
 if dataset_type == 'cifar10':
@@ -23,12 +22,12 @@ if dataset_type == 'cifar10':
 
 elif dataset_type == 'imagenet':
     n_classes= 200
-    n_epochs = 10 # not used if using early stopping
-    batch_size = 128 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
-    steps_per_epoch = int(np.ceil(100000 / batch_size)) # 100 000 = number of training samples
-    steps_per_val = int(np.ceil(10000 / batch_size))
-    train_data_gen, _, _ = load_tiny('val', batch_size)
-    validation_data_gen, _, _ = load_tiny('val', batch_size)
+    n_epochs = 400 # not used if using early stopping
+    batch_size = 64 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
+    steps_per_epoch = int(np.floor(100000 / batch_size)) # 100 000 = number of training samples
+    steps_per_val = int(np.floor(10000 / batch_size))
+    train_data_gen = load_tiny('train', batch_size)
+    validation_data_gen = load_tiny('val', batch_size)
     test_data_gen = load_tiny_test(batch_size)
     labels = train_data_gen.labels
 
@@ -68,11 +67,13 @@ for noise_rate in noise_rates:
         model = get_model_imagenet()
         #tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
         #loss='MSE'
+        # train_data_gen = tf.data.Dataset.from_generator(lambda: load_tiny('train', batch_size), (tf.int32, tf.int32)).batch(batch_size).repeat()
+        # validation_data_gen = tf.data.Dataset.from_generator(lambda: load_tiny('val', batch_size), (tf.int32, tf.int32)).batch(batch_size).repeat()
         model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False))
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
-        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=25) # https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/EarlyStopping
+        es = tf.keras.callbacks.EarlyStopping(monitor='loss', mode='min', verbose=1, patience=25) # https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/EarlyStopping
         H = model.fit(train_data_gen, steps_per_epoch=steps_per_epoch, epochs=n_epochs, validation_data=validation_data_gen, validation_steps=steps_per_val, callbacks=[loss_history,lrate, Metr, es])
 
 
@@ -136,7 +137,7 @@ for noise_rate in noise_rates:
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
-        es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=25) # https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/EarlyStopping
+        es = tf.keras.callbacks.EarlyStopping(monitor='loss', mode='min', verbose=1, patience=25) # https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/EarlyStopping
         H = model.fit(train_data_gen, steps_per_epoch=steps_per_epoch, epochs=n_epochs, validation_data=validation_data_gen, validation_steps=steps_per_val, callbacks=[loss_history,lrate, Metr, es])
 
     # todo - save all data to files
