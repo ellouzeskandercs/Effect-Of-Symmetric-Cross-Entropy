@@ -42,6 +42,11 @@ def one_hot(labels, n_classes):
 	return one_hot
 
 
+''' read fashion mnist dataset '''
+def load_fashion_mnist():
+	((x_train, y_train), (x_test, y_test)) = tf.keras.datasets.fashion_mnist.load_data()
+
+
 ''' Only needed to run once, to store validation data in class subdirectories '''
 def restructure_validation_data():
 	print('Restructuring validation data...')
