@@ -117,7 +117,7 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         if epoch in [5, 10, 30, 50, 70, 90, 110]:
             predicted_prob = self.model.predict(self.train_gen)
             self.confidence.append(np.mean(predicted_prob, axis=0))
-        if epoch in [0,1,50, 100]:
+        if epoch in [50, 100]:
             predicted_prob = self.model.predict(self.train_gen)
             pred = np.argmax(predicted_prob,axis=1)
             predicted = self.n_class*[0]
