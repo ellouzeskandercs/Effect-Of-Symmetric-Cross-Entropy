@@ -117,7 +117,7 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
         if epoch in [5, 10, 30, 50, 70, 90, 110]:
             predicted_prob = self.model.predict(self.train_gen)
             self.confidence.append(np.mean(predicted_prob, axis=0))
-        if epoch in [50, 100]:
+        if epoch in [0,1,50, 100]:
             predicted_prob = self.model.predict(self.train_gen)
             pred = np.argmax(predicted_prob,axis=1)
             predicted = self.n_class*[0]
@@ -126,12 +126,12 @@ class Metrics_imagenet(tf.keras.callbacks.Callback):
                 predicted[i] = np.size(np.where(pred==i))
                 correct[i] = np.size(np.where(self.y_train_clean[np.where(pred==i)]==i))
             self.Pred.append(predicted)
-            self.CorrPred.appedn(correct)
+            self.CorrPred.append(correct)
         if epoch in [50, 100]:
             predicted_prob = self.model.predict(self.test_gen)
             pred = np.argmax(predicted_prob,axis=1)
-            predicted = self.n_class*[0]
-            correct = self.n_class*[0]
+            val_predicted = self.n_class*[0]
+            val_correct = self.n_class*[0]
             for i in range (self.n_class) :
                 val_predicted[i] = np.size(np.where(pred==i))
                 val_correct[i] = np.size(np.where(self.test_gen.labels[np.where(pred==i)]==i))
@@ -162,7 +162,7 @@ class LossHistory(tf.keras.callbacks.Callback):
         self.lr.append(step_decay(len(self.losses)))
 
 def symmetric_cross_entropy(y_actual,y_pred,A=-6,alpha=0.1,beta=1):
-    q = K.one_hot(K.cast(y_actual,'uint8'),10)
+    q = K.one_hot(K.cast(y_actual,'uint8'),200) # 200 or 10
     custom_loss =  - alpha * K.mean(K.batch_dot(q,K.maximum(K.log(y_pred+1e-15),A))) - beta * K.mean(K.batch_dot(K.maximum(K.log(q+1e-15),A),y_pred))
     return custom_loss
 

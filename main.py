@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import save_metrics
 
-# dataset_type = 'imagenet'
-dataset_type = 'cifar10'
+dataset_type = 'imagenet'
+# dataset_type = 'cifar10'
 small_dataset = False
 noise_type = 'sym'
 # noise_type = 'asym'
@@ -23,7 +23,7 @@ if dataset_type == 'cifar10':
 elif dataset_type == 'imagenet':
     n_classes= 200
     n_epochs = 400 # not used if using early stopping
-    batch_size = 128 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
+    batch_size = 2*128 # set lower if memory error occur, otherwise a higher batch_size will give more stable gradients, but a too high value can also result in being stuck in local minima
     steps_per_epoch = int(np.floor(100000 / batch_size)) # 100 000 = number of training samples
     steps_per_val = int(np.floor(10000 / batch_size))
     train_data_gen = load_tiny('train', batch_size)
@@ -33,7 +33,7 @@ elif dataset_type == 'imagenet':
 
 
 if noise_type == 'sym':
-    noise_rates=[0.0] #[0.2,0.4] # [0.2,0.3,0.4]
+    noise_rates=[0.0,0.2,0.4] # [0.2,0.3,0.4]
 else: # 'asym'
     noise_rates=[0.2,0.4] #,0.6,0.8]
 
@@ -70,7 +70,7 @@ for noise_rate in noise_rates:
         #loss='MSE'
         # train_data_gen = tf.data.Dataset.from_generator(lambda: load_tiny('train', batch_size), (tf.int32, tf.int32)).batch(batch_size).repeat()
         # validation_data_gen = tf.data.Dataset.from_generator(lambda: load_tiny('val', batch_size), (tf.int32, tf.int32)).batch(batch_size).repeat()
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False))
+        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=0.0001, nesterov=False),loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False)) # SparseCategoricalCrossentropy
         loss_history = LossHistory()
         Metr = Metrics_imagenet(model, train_data_gen, test_data_gen, labels, n_classes)
         lrate = tf.keras.callbacks.LearningRateScheduler(step_decay_imagenet)
@@ -105,17 +105,21 @@ for noise_rate in noise_rates:
     index = np.arange(n_classes)
     bar_width = 0.35
     opacity = 0.8
-    rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
-    rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
-    rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
-    rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
-    plt.xlabel('Class')
-    plt.ylabel('Number of samples')
-    plt.title('Confidence distribution')
-    plt.legend()
-    filename_PredictionDist = './PredictionDistr_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
-    plt.savefig(filename_PredictionDist)
-    plt.close()
+    try:
+        rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
+        rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
+        rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
+        rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
+        plt.xlabel('Class')
+        plt.ylabel('Number of samples')
+        plt.title('Confidence distribution')
+        plt.legend()
+        filename_PredictionDist = './PredictionDistr_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
+        plt.savefig(filename_PredictionDist)
+        plt.close()
+    except IndexError as error:
+        print(error)
+
 
     # Save model
     filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.txt'
@@ -170,23 +174,20 @@ for noise_rate in noise_rates:
     index = np.arange(n_classes)
     bar_width = 0.35
     opacity = 0.8
-    rects = []
-    colors_pred = ['lightblue', 'lightcoral', 'lightgreen']
-    colors_corrpred = ['cornflowerblue', 'purple', 'green']
-    #for batch_idx in range (len(Metr.Pred)):
-        #rects.append(plt.bar(index + batch_idx * bar_width, Metr.Pred[batch_idx], bar_width, alpha=opacity, color=colors_pred[batch_idx], label='Predicted - Epoch ' + str(batch_idx)))
-        #rects[-1] = plt.bar(index + batch_idx * bar_width, Metr.CorrPred[batch_idx], bar_width, alpha=opacity, color=colors_corrpred[batch_idx], label='Correct - Epoch ' + str(batch_idx))
-    rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
-    rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
-    rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
-    rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
-    plt.xlabel('Class')
-    plt.ylabel('Number of samples')
-    plt.title('Confidence distribution')
-    plt.legend()
-    filename_PredictionDist = './PredictionDistr_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
-    plt.savefig(filename_PredictionDist)
-    plt.close()
+    try:
+        rects1 = plt.bar(index, Metr.Pred[0], bar_width, alpha=opacity, color='lightblue', label='Predicted - Epoch 50')
+        rects1 = plt.bar(index, Metr.CorrPred[0], bar_width, alpha=opacity, color='cornflowerblue', label='Correct - Epoch 50')
+        rects2 = plt.bar(index + bar_width, Metr.Pred[1], bar_width, alpha=opacity, color='lightcoral', label='Predicted - Epoch 100')
+        rects2 = plt.bar(index + bar_width, Metr.CorrPred[1], bar_width, alpha=opacity, color='purple', label='Correct - Epoch 100')
+        plt.xlabel('Class')
+        plt.ylabel('Number of samples')
+        plt.title('Confidence distribution')
+        plt.legend()
+        filename_PredictionDist = './PredictionDistr_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.png'
+        plt.savefig(filename_PredictionDist)
+        plt.close()
+    except IndexError as error:
+        print(error)
 
     # Save model
     filename_model = './Model_' + str(dataset_type) + '_' + str(loss_type) + '_' + str(noise_type) + str(noise_rate) + '.txt'
