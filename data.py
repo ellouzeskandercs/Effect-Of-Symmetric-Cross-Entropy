@@ -175,12 +175,12 @@ def add_noise_tiny(dataset, data, n_classes, noise_rate, type):
 
 ''' add noise to data (of type symmetric or assymmetric) '''
 def add_noise(dataset,labels,n_classes,noise_rate,type):
-	if dataset not in ['cifar10', 'imagenet']:
-		print("ERROR: dataset must be 'cifar10' or 'imagenet'")
+	if dataset not in ['cifar10', 'fashion_mnist']:
+		print("ERROR: dataset must be 'cifar10' or 'fashion_mnist'")
 		return
 
-	if dataset == 'imagenet': # make imagenet's 1D labels into 2D np.array
-		labels = np.array([labels]).transpose()
+	# if dataset == 'imagenet': # make imagenet's 1D labels into 2D np.array
+	# 	labels = np.array([labels]).transpose()
 
 	noisy_labels=np.copy(labels)
 	if type=='sym':
@@ -203,21 +203,30 @@ def add_noise(dataset,labels,n_classes,noise_rate,type):
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
-		if dataset=='imagenet':
-			n_switched_classes = 40 # 40 switched classes randomly
-			flip={}
-			from_class=np.random.randint(0, n_classes, n_switched_classes)
-			to_class=np.random.randint(0, n_classes, n_switched_classes)
-			for i in range(n_switched_classes):
-				flip[from_class[i]]=to_class[i]
+		if dataset == 'fashion_mnist' :
+			# SNEAKER to ANCLEBOOT, ANCLEBOOT to SNEAKER, PULLOVER to SHIRT, TSHIRT/TOP to PULLOVER, DRESS to COAT
+			flip ={7:9,9:7,2:6,0:2,3:4}
 			for i in flip.keys():
 				ind_for_class = np.where(np.equal(labels,i))[0]
 				np.random.shuffle(ind_for_class)
 				ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
 				noisy_labels[ind_to_flip,:]=flip[i]
 
-	if dataset == 'imagenet':
-		noisy_labels = noisy_labels.transpose()[0]
+		# if dataset=='imagenet':
+		# 	n_switched_classes = 40 # 40 switched classes randomly
+		# 	flip={}
+		# 	from_class=np.random.randint(0, n_classes, n_switched_classes)
+		# 	to_class=np.random.randint(0, n_classes, n_switched_classes)
+		# 	for i in range(n_switched_classes):
+		# 		flip[from_class[i]]=to_class[i]
+		# 	for i in flip.keys():
+		# 		ind_for_class = np.where(np.equal(labels,i))[0]
+		# 		np.random.shuffle(ind_for_class)
+		# 		ind_to_flip = ind_for_class[0:int(noise_rate*len(ind_for_class))]
+		# 		noisy_labels[ind_to_flip,:]=flip[i]
+
+	# if dataset == 'imagenet':
+	# 	noisy_labels = noisy_labels.transpose()[0]
 
 	return noisy_labels
 

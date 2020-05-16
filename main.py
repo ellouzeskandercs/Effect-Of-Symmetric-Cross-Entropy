@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import save_metrics
 
-dataset_type = 'imagenet'
+#dataset_type = 'imagenet'
+dataset_type = 'fashion_mnist'
 # dataset_type = 'cifar10'
 small_dataset = False
 noise_type = 'sym'
@@ -33,9 +34,9 @@ elif dataset_type == 'imagenet':
 
 
 if noise_type == 'sym':
-    noise_rates=[0.0,0.2,0.4] # [0.2,0.3,0.4]
+    noise_rates=[0.0,0.2,0.4]
 else: # 'asym'
-    noise_rates=[0.2,0.4] #,0.6,0.8]
+    noise_rates=[0.2,0.4]
 
 for noise_rate in noise_rates:
     tf.keras.backend.clear_session()
