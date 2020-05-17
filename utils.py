@@ -10,7 +10,6 @@ def save_metrics(metrics, history, dataset_type, loss_type, noise_type, noise_ra
 	class_accuracies = np.array(metrics.train_acc_class).transpose()
 	prediction_distribution = metrics.Pred
 	prediction_distribution_correct = metrics.CorrPred
-	# prediction_distribution = metrics.Pred[0], metrics.CorrPred[0], metrics.Pred[1], metrics.CorrPred[1]
 	overall_val_accuracy = metrics.acc
 
 	np.savetxt('./Confidence_' + curr_test_filename, confidence)
