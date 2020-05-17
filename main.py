@@ -5,18 +5,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import save_metrics
 
-'''Define the dataset'''
+'''Set the dataset'''
 dataset_type = 'fashion_mnist'
 # dataset_type = 'cifar10'
 
-''' In case of test, a small part of the dataset may be used '''
+'''In case of test, a small part of the dataset may be used '''
 small_dataset = False
 
-'''Define the type of noise'''
+'''Set the type of noise'''
 noise_type = 'sym'
 #noise_type = 'asym'
 
-'''read the data and set params'''
+'''Read the data and set params'''
 if dataset_type == 'cifar10':
     n_classes=10
     n_epochs = 120
